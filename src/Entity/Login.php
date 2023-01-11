@@ -16,8 +16,8 @@ class Login
     #[ORM\Column(length: 150, nullable: true)]
     private ?string $password = null;
 
-    #[ORM\Column(length: 150, nullable: true)]
-    private ?Integer $rol = null;
+    #[ORM\Column]
+    private ?int $rol = null;
     public function getEmail(): ?string
     {
         return $this->email;
