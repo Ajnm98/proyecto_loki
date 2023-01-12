@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\LoginRepository;
 use App\Repository\MensajeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,9 +23,9 @@ class SaludoController extends AbstractController
         ]);
     }
     #[Route('/mensaje/list', name: 'app_mensaje')]
-    public function listar(MensajeRepository $mensajeRepository): JsonResponse
+    public function listar(LoginRepository $loginRepository): JsonResponse
     {
-        $listLogin = $mensajeRepository->findAll();
+        $listLogin = $loginRepository->findAll();
 
         $listJson = $this->toJson($listLogin);
 

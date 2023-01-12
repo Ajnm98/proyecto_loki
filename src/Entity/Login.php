@@ -10,10 +10,11 @@ use phpDocumentor\Reflection\Types\Integer;
 #[ORM\Entity(repositoryClass: LoginRepository::class)]
 class Login
 {
-    #[ORM\Column(length: 150, nullable: true)]
+    #[ORM\Id]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 150, nullable: true)]
+    #[ORM\Column(length: 1000, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column]
@@ -26,6 +27,28 @@ class Login
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
+        return $this;
+    }
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+    public function getRol(): ?int
+    {
+        return $this->rol;
+    }
+
+    public function setRol(int $rol): self
+    {
+        $this->rol = $rol;
 
         return $this;
     }
