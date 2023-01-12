@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AmigosRepository;
 use App\Repository\LoginRepository;
 use App\Repository\MensajeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,14 +23,17 @@ class SaludoController extends AbstractController
             'path' => 'src/Controller/SaludoController.php',
         ]);
     }
-    #[Route('/mensaje/list', name: 'app_mensaje')]
+    #[Route('/mensaje/list', name: 'app_mensaje2')]
     public function listar(LoginRepository $loginRepository): JsonResponse
     {
         $listLogin = $loginRepository->findAll();
 
-        $listJson = $this->toJson($listLogin);
+//        $listJson = $this->toJson($listLogin);
 
-        return new JsonResponse($listJson, 200, [], true);
+//        return new JsonResponse($listJson, 200, [], true);
+        return $this->json(
+            $listLogin,
 
+        );
     }
 }

@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Integer;
 
 #[ORM\Entity(repositoryClass: LoginRepository::class)]
+#[ORM\Table]
 class Login
 {
     #[ORM\Id]
