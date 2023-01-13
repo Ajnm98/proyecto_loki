@@ -11,15 +11,17 @@ use Doctrine\ORM\Mapping as ORM;
 class Bloqueados
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(nullable: true)]
     private ?int $id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $usuario_id = null;
+    #[ORM\ManyToOne(inversedBy: 'bloqueados', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
+    private ?Usuario $usuario_id = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $bloqueado_id = null;
-
+    #[ORM\OneToOne(inversedBy: 'bloqueados', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'bloqueado_id',nullable: false)]
+    private ?Usuario $bloqueado_id = null;
 
     public function getId(): ?int
     {

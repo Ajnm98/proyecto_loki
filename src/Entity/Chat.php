@@ -12,14 +12,18 @@ class Chat
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(nullable: true)]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $usuario_id_emisor = null;
 
-    #[ORM\Column]
-    private ?int $usuario_id_receptor = null;
+    #[ORM\ManyToOne(inversedBy: 'chat', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'usuario_id_emisor',nullable: false)]
+    private ?Usuario $usuario_id_emisor = null;
+
+    #[ORM\ManyToOne(inversedBy: 'chat', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'usuario_id_receptor',nullable: false)]
+    private ?Usuario $usuario_id_receptor = null;
 
     #[ORM\Column(length: 200, nullable: true)]
     private ?string $texto = null;

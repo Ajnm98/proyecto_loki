@@ -10,6 +10,7 @@ class Publicacion
 {
 
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(nullable: true)]
     private ?int $id = null;
 

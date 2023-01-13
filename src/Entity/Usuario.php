@@ -41,4 +41,6 @@ class Usuario
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $encabezado = null;
 
+
+
 }
