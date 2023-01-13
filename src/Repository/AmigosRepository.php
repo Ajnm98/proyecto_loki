@@ -9,10 +9,10 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Amigos>
  *
- * @method amigos|null find($id, $lockMode = null, $lockVersion = null)
- * @method amigos|null findOneBy(array $criteria, array $orderBy = null)
- * @method amigos[]    findAll()
- * @method amigos[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Amigos|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Amigos|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Amigos[]    findAll()
+ * @method Amigos[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class AmigosRepository extends ServiceEntityRepository
 {
