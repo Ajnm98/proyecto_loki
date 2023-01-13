@@ -23,17 +23,5 @@ class SaludoController extends AbstractController
             'path' => 'src/Controller/SaludoController.php',
         ]);
     }
-    #[Route('/mensaje/list', name: 'app_mensaje2')]
-    public function listar(LoginRepository $loginRepository): JsonResponse
-    {
-        $listLogin = $loginRepository->findAll();
 
-//        $listJson = $this->toJson($listLogin);
-
-//        return new JsonResponse($listJson, 200, [], true);
-        return $this->json(
-            $listLogin,
-
-        );
-    }
 }
