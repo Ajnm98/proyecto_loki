@@ -20,6 +20,7 @@ class Login
 
     #[ORM\Column]
     private ?int $rol = null;
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -42,6 +43,7 @@ class Login
 
         return $this;
     }
+
     public function getRol(): ?int
     {
         return $this->rol;

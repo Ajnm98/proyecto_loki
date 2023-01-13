@@ -12,6 +12,7 @@ class LoginController
     public function listar(LoginRepository $loginRepository)//: JsonResponse
     {
         $listLogin = $loginRepository->findAll();
+       // echo "Hola";
         return $this->json($listLogin);
 
     }
