@@ -3,6 +3,7 @@
 namespace App\Entity;
 use App\Repository\UsuarioRepository;
 use DateTime;
+use Date;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Integer;
@@ -28,8 +29,8 @@ class Usuario
     #[ORM\Column(length: 200, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $fecha = null;
+    #[ORM\Column(length: 200,nullable: true)]
+    private ?String $fecha = null;
 
     #[ORM\Column]
     private ?int $telefono = null;

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\AmigosRepository;
+use App\Utils\Prueba;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -15,6 +16,7 @@ class AmigoController extends AbstractController
     #[Route('/amigos', name: 'amigos')]
     public function listar(AmigosRepository $amigosRepository): JsonResponse
     {
+        prueba
         $listAmigos = $amigosRepository->findAll();
         return $this->json($listAmigos);
 
