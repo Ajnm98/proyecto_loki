@@ -16,7 +16,7 @@ class AmigoController extends AbstractController
     #[Route('/amigos', name: 'amigos')]
     public function listar(AmigosRepository $amigosRepository): JsonResponse
     {
-        prueba
+
         $listAmigos = $amigosRepository->findAll();
         return $this->json($listAmigos);
 

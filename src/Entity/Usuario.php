@@ -41,4 +41,42 @@ class Usuario
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $encabezado = null;
 
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+    public function getUsuario(): ?String
+    {
+        return $this->usuario;
+    }
+    public function getNombre(): ?String
+    {
+        return $this->nombre;
+    }
+    public function getNick(): ?String
+    {
+        return $this->nick;
+    }
+    public function getEmail(): ?String
+    {
+        return $this->email;
+    }
+    public function getfecha(): ?String
+    {
+        return $this->fecha;
+    }
+    public function getTelefono(): ?int
+    {
+        return $this->telefono;
+    }
+    public function getFoto(): ?String
+    {
+        return $this->foto;
+    }
+    public function getEncabezado(): ?String
+    {
+        return $this->encabezado;
+    }
+
+
 }
