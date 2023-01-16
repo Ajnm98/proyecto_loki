@@ -27,7 +27,7 @@ class Amigos
         return $this->id;
     }
 
-    public function getUsuario_Id(): ?int
+    public function getUsuarioId(): ?int
     {
         return $this->usuario_id;
     }
@@ -37,10 +37,12 @@ class Amigos
 
         return $this;
     }
-    public function getAmigo_Id(): ?int
+
+    public function getAmigoId(): ?int
     {
         return $this->amigo_id;
     }
+
     public function setAmigo_Id(int $amigo_id): self
     {
         $this->amigo_id = $amigo_id;
