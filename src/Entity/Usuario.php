@@ -26,8 +26,9 @@ class Usuario
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $nick = null;
 
-    #[ORM\Column(length: 200, nullable: true)]
-    private ?string $email = null;
+    #[ManyToOne(targetEntity: Login::class)]
+    #[JoinColumn(name: 'email', referencedColumnName: 'email')]
+    private ?Login $email = null;
 
     #[ORM\Column(length: 200,nullable: true)]
     private ?String $fecha = null;
@@ -80,12 +81,12 @@ class Usuario
 
         return $this;
     }
-    public function getEmail(): ?String
+    public function getEmail(): ?Login
     {
         return $this->email;
     }
 
-    public function setEmail(int $email): self
+    public function setEmail(Login $email): self
     {
         $this->email = $email;
 
