@@ -16,10 +16,10 @@ class Amigos
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?int $usuario_id = null;
+    private ?Usuario $usuario_id = null;
 
     #[ORM\Column]
-    private ?int $amigo_id = null;
+    private ?Usuario $amigo_id = null;
 
 
     public function getId(): ?int
@@ -27,20 +27,22 @@ class Amigos
         return $this->id;
     }
 
-    public function getUsuario_Id(): ?int
+    public function getUsuarioId(): ?Usuario
     {
         return $this->usuario_id;
     }
-    public function setUsuario_Id(int $usuario_id): self
+    public function setUsuario_Id(Usuario $usuario_id): self
     {
         $this->usuario_id = $usuario_id;
 
         return $this;
     }
-    public function getAmigo_Id(): ?int
+
+    public function getAmigoId(): ?int
     {
         return $this->amigo_id;
     }
+
     public function setAmigo_Id(int $amigo_id): self
     {
         $this->amigo_id = $amigo_id;

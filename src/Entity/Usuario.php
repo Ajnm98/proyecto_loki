@@ -7,8 +7,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use phpDocumentor\Reflection\Types\Integer;
 
-#[ORM\Entity(repositoryClass: Usuario2Repository::class)]
+
+#[ORM\Entity(repositoryClass: UsuarioRepository::class)]
+#[ORM\Table]
 class Usuario
 {
     #[ORM\Id]
@@ -31,13 +34,13 @@ class Usuario
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $fecha = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column]
     private ?int $telefono = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $foto = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $encabezado = null;
 
 
