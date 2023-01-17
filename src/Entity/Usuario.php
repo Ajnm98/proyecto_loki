@@ -2,7 +2,8 @@
 
 namespace App\Entity;
 
-use App\Repository\Usuario2Repository;
+use App\Repository\UsuarioRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -31,8 +32,8 @@ class Usuario
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $email = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $fecha = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?DateTime $fecha = null;
 
     #[ORM\Column]
     private ?int $telefono = null;
@@ -118,12 +119,12 @@ class Usuario
         return $this;
     }
 
-    public function getFecha(): ?\DateTimeInterface
+    public function getFecha(): ?string
     {
-        return $this->fecha;
+        return $this->fecha->format('Y-m-d H:i:s');
     }
 
-    public function setFecha(?\DateTimeInterface $fecha): self
+    public function setFecha(?DateTime $fecha): self
     {
         $this->fecha = $fecha;
 

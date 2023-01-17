@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Repository\ChatRepository;
+use App\Utils\ArraySort;
+use App\Utils\JsonResponseConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -20,20 +22,31 @@ class ChatController extends AbstractController
     #[Route('/chat/{id}',  methods: ['GET', 'HEAD'])]
     public function listarchatUsuario(int $id, ChatRepository $chatRepository)//: JsonResponse
     {
-        $listChat = $chatRepository->findAll();
 
-
+        $arraySort = new ArraySort();
 
         $parametrosBusqueda = array(
-            'usuario_id_emisor' => $id,
+            'usuario_id_emisor' => $id
+        );
+
+        $parametrosBusqueda2 = array(
             'usuario_id_receptor' => $id
         );
 
-        $listChat = $chatRepository->findBy($parametrosBusqueda);
 
-        return $this->json($listChat);
+        $listChat1 = $chatRepository->findBy($parametrosBusqueda);
+
+        $listChat2 = $chatRepository->findBy($parametrosBusqueda2);
+
+        $resultado = array_merge($listChat1, $listChat2);
+
+        $listArraySort = $arraySort->array_sort($resultado, 'fecha', SORT_ASC);
+
+        return $this->json($listArraySort);
 
     }
+
+
 
 
 }
