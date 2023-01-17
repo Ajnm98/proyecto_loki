@@ -17,4 +17,23 @@ class ChatController extends AbstractController
 
     }
 
+    #[Route('/chat/{id}',  methods: ['GET', 'HEAD'])]
+    public function listarchatUsuario(int $id, ChatRepository $chatRepository)//: JsonResponse
+    {
+        $listChat = $chatRepository->findAll();
+
+
+
+        $parametrosBusqueda = array(
+            'usuario_id_emisor' => $id,
+            'usuario_id_receptor' => $id
+        );
+
+        $listChat = $chatRepository->findBy($parametrosBusqueda);
+
+        return $this->json($listChat);
+
+    }
+
+
 }
