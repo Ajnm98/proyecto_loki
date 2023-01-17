@@ -24,4 +24,8 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
     return new JsonResponse($listJson, 200, [], true);
 }
+
+
+
+
 }
