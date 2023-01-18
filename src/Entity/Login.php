@@ -21,7 +21,6 @@ class Login
     #[ORM\Column(length: 1000, nullable: true)]
     private ?string $password = null;
 
-    #[Groups()]
     #[ORM\Column]
     private ?int $rol = null;
 

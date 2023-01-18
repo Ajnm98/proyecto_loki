@@ -28,9 +28,8 @@ class Usuario
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $nick = null;
 
-    #[ORM\OneToOne(fetch: 'EAGER')]
+    #[ORM\OneToOne(fetch: 'EAGER',cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'login_id',nullable: false)]
-
     private ?Login $login = null;
 
     #[ORM\Column(length: 200,nullable: true)]
@@ -45,7 +44,11 @@ class Usuario
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $encabezado = null;
 
+    #[OneToMany( mappedBy: 'usuario', targetEntity: Amigos::class )]
+    private Amigos|null $usuario_id = null;
 
+    #[OneToMany( mappedBy: 'usuario', targetEntity: Amigos::class)]
+    private Amigos|null $amigo_id = null;
 
     public function getId(): ?int
     {

@@ -15,12 +15,13 @@ class Amigos
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\ManyToOne(fetch: 'EAGER',cascade:['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
     private ?Usuario $usuario_id = null;
 
-    #[ORM\Column]
+    #[ORM\ManyToOne(fetch: 'EAGER')]
+    #[ORM\JoinColumn(name: 'amigo_id',nullable: false)]
     private ?Usuario $amigo_id = null;
-
 
     public function getId(): ?int
     {
@@ -38,12 +39,12 @@ class Amigos
         return $this;
     }
 
-    public function getAmigoId(): ?int
+    public function getAmigoId(): ?Usuario
     {
         return $this->amigo_id;
     }
 
-    public function setAmigo_Id(int $amigo_id): self
+    public function setAmigo_Id(Usuario $amigo_id): self
     {
         $this->amigo_id = $amigo_id;
 
