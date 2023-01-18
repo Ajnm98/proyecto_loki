@@ -7,6 +7,8 @@ use Date;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Integer;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 
 #[ORM\Entity(repositoryClass: UsuarioRepository::class)]
@@ -26,9 +28,10 @@ class Usuario
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $nick = null;
 
-    #[ManyToOne(targetEntity: Login::class)]
-    #[JoinColumn(name: 'email', referencedColumnName: 'email')]
-    private ?Login $email = null;
+    #[ORM\OneToOne(fetch: 'EAGER')]
+    #[ORM\JoinColumn(name: 'login_id',nullable: false)]
+
+    private ?Login $login = null;
 
     #[ORM\Column(length: 200,nullable: true)]
     private ?String $fecha = null;
@@ -81,14 +84,14 @@ class Usuario
 
         return $this;
     }
-    public function getEmail(): ?Login
+    public function getLogin(): ?Login
     {
-        return $this->email;
+        return $this->login;
     }
 
-    public function setEmail(Login $email): self
+    public function setLogin(Login $login): self
     {
-        $this->email = $email;
+        $this->login = $login;
 
         return $this;
     }
