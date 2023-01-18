@@ -14,7 +14,7 @@ class Publicacion
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(fetch: 'EAGER')]
     #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
     private ?Usuario $usuario_id = null;
 

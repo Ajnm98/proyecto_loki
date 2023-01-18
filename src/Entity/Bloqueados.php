@@ -9,16 +9,17 @@ use Doctrine\ORM\Mapping as ORM;
 class Bloqueados
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
+    #[ORM\Column(name: 'id')]
+    #[ORM\SequenceGenerator(sequenceName: 'bloqueados_id_seq', initialValue: 1, allocationSize: 100)]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'usuario_bloquea_id', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
+    #[ORM\OneToOne(inversedBy: 'usuario_bloquea_id', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[ORM\JoinColumn(name: 'usuario_id')]
     private ?Usuario $usuario_id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'usuario_bloqueado_id')]
-    #[ORM\JoinColumn(name: 'bloqueado_id',nullable: false)]
+    #[ORM\ManyToOne(inversedBy: 'usuario_bloqueado_id', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[ORM\JoinColumn(name: 'bloqueado_id')]
     private ?Usuario $bloqueado_id = null;
 
     public function getId(): ?int
@@ -50,4 +51,7 @@ class Bloqueados
 
         return $this;
     }
+
+
+
 }

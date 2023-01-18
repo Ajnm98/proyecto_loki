@@ -23,7 +23,7 @@ class BloqueadosRepository extends ServiceEntityRepository
 
     public function save(Bloqueados $entity, bool $flush = false): void
     {
-        $this->getEntityManager()->persist($entity);
+         $this->getEntityManager()->persist($entity);
 
         if ($flush) {
             $this->getEntityManager()->flush();
