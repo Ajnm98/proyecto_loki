@@ -11,6 +11,7 @@ use App\Utils\ArraySort;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class PublicacionController extends AbstractController
 {
@@ -18,8 +19,10 @@ class PublicacionController extends AbstractController
     #[Route('/publicacion', name: 'publicacion')]
     public function listarpublicacion(PublicacionRepository $publicacionRepository)//: JsonResponse
     {
-        $listLogin = $publicacionRepository->findAll();
-        return $this->json($listLogin);
+        $listPublicacion = $publicacionRepository->findAll();
+        return $this->json($listPublicacion, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
 
     }
 

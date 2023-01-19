@@ -8,6 +8,7 @@ use App\Utils\JsonResponseConverter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 class ChatController extends AbstractController
 {
@@ -15,9 +16,10 @@ class ChatController extends AbstractController
     #[Route('/chat', name: 'chat')]
     public function listarchat(ChatRepository $chatRepository)//: JsonResponse
     {
-        $listLogin = $chatRepository->findAll();
-        return $this->json($listLogin);
-
+        $listChat = $chatRepository->findAll();
+        return $this->json($listChat, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
     }
 
     #[Route('/chat/privado',  methods: ['GET', 'HEAD'])]

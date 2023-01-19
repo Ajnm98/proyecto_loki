@@ -14,9 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Persistence\ManagerRegistry;
-
-
-
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 
 class BloqueadosController extends AbstractController
@@ -29,13 +27,14 @@ class BloqueadosController extends AbstractController
     #[Route('/bloqueados', name: 'bloqueados')]
     public function listarbloqueados(BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
-        $jsonConverter = new JsonResponseConverter();
 
-        $listLogin = $bloqueadosRepository->findAll();
-
-        $listJson = $jsonConverter->toJson($listLogin);
-
-        return new JsonResponse($listJson, 200, [], true);
+        $listbloqueados = $bloqueadosRepository->findAll();
+        return $this->json($listbloqueados, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
+//        $jsonConverter = new JsonResponseConverter();
+//        $listJson = $jsonConverter->toJson($listLogin);
+//        return new JsonResponse($listJson, 200, [], true);
 
     }
 
