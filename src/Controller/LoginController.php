@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Login;
 use App\Repository\LoginRepository;
 use App\Utils\JsonResponseConverter;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,11 +14,14 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\HttpFoundation\Request;
+
 
 
 class LoginController extends AbstractController
 {
-    #[Route('/login', name: 'login')]
+    public function __construct(private ManagerRegistry $doctrine) {}
+    #[Route('/login/list', name: 'login')]
     public function listar(LoginRepository $loginRepository): JsonResponse
     {
         $listLogin = $loginRepository->findAll();
@@ -29,5 +34,29 @@ class LoginController extends AbstractController
 //        $listJson = $jsonConverter->toJson($listLogin);
 //        return new JsonResponse($listJson, 200, [], true);
     }
+    #[Route('/login/save', name: 'login_crear', methods: ['POST'])]
+    public function save(Request $request): JsonResponse
+    {
+
+        //Obtener Json del body
+        $json  = json_decode($request->getContent(), true);
+        echo "hola";
+        //CREAR NUEVO USUARIO A PARTIR DEL JSON
+        $loginNuevo = new Login();
+
+        $loginNuevo->setEmail($json['email']);
+        $loginNuevo->setPassword($json['password']);
+        $loginNuevo->setRol($json['rol']);
+
+        //GUARDAR
+        $em = $this-> doctrine->getManager();
+        $em->persist($loginNuevo);
+        $em-> flush();
+
+        return new JsonResponse("{ mensaje: Usuario creado correctamente }", 200, [], true);
+
+
+    }
+
 
 }

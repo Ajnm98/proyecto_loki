@@ -12,6 +12,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Login
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
     #[ORM\Column]
     private ?int $id = null;
 
@@ -26,6 +27,7 @@ class Login
 
     #[OneToOne( mappedBy: 'login', targetEntity: Usuario::class)]
     private Usuario|null $usuario = null;
+
 
     public function getId(): ?int
     {
