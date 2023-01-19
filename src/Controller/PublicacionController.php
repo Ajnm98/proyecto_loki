@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Usuario;
+use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
 use App\Repository\PublicacionRepository;
+use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,17 +28,12 @@ class PublicacionController extends AbstractController
     {
 
         $id = $request->query->get("id");
-
         $parametrosBusqueda = array(
             'usuario_id' => $id
         );
 
-
-        $listChat1 = $publicacionRepository->findBy($parametrosBusqueda);
-
-
-        return $this->json($listChat1);
-
+        $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+        return $this->json($listPublicacion1);
     }
 
 
