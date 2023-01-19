@@ -17,11 +17,13 @@ class Respuesta
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $usuario_id = null;
+    #[ORM\ManyToOne(cascade:['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
+    private ?Usuario $usuario_id = null;
 
-    #[ORM\Column]
-    private ?int $publicacion_id = null;
+    #[ORM\ManyToOne(cascade:['persist', 'remove'])]
+    #[ORM\JoinColumn(name: 'publicacion_id',nullable: false)]
+    private ?Publicacion $publicacion_id = null;
 
     #[ORM\Column(length: 200, nullable: true)]
     private ?string $texto = null;
@@ -48,7 +50,7 @@ class Respuesta
     /**
      * @return int|null
      */
-    public function getUsuarioId(): ?int
+    public function getUsuarioId(): ?Usuario
     {
         return $this->usuario_id;
     }
@@ -56,7 +58,7 @@ class Respuesta
     /**
      * @return int|null
      */
-    public function getPublicacionId(): ?int
+    public function getPublicacionId(): ?Publicacion
     {
         return $this->publicacion_id;
     }
@@ -104,7 +106,7 @@ class Respuesta
     /**
      * @param int|null $usuario_id
      */
-    public function setUsuarioId(?int $usuario_id): void
+    public function setUsuarioId(?Usuario $usuario_id): void
     {
         $this->usuario_id = $usuario_id;
     }
@@ -112,7 +114,7 @@ class Respuesta
     /**
      * @param int|null $publicacion_id
      */
-    public function setPublicacionId(?int $publicacion_id): void
+    public function setPublicacionId(?Publicacion $publicacion_id): void
     {
         $this->publicacion_id = $publicacion_id;
     }
