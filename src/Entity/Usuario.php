@@ -28,7 +28,7 @@ class Usuario
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $nick = null;
 
-    #[ORM\OneToOne(fetch: 'EAGER',cascade:['persist', 'remove'])]
+    #[ORM\OneToOne(cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'login_id',nullable: false)]
     private ?Login $login = null;
 

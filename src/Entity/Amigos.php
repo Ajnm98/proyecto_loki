@@ -15,11 +15,11 @@ class Amigos
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(fetch: 'EAGER',cascade:['persist', 'remove'])]
+    #[ORM\ManyToOne(cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
     private ?Usuario $usuario_id = null;
 
-    #[ORM\ManyToOne(fetch: 'EAGER')]
+    #[ORM\ManyToOne(cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'amigo_id',nullable: false)]
     private ?Usuario $amigo_id = null;
 
