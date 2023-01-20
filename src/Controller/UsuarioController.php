@@ -35,7 +35,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
         $nombre = $request->query->get("usuario");
 
         $parametrosBusqueda = array(
-            'username' => $nombre
+            'usuario' => $nombre
         );
 
         $listUsuarios = $usuarioRepository->findBy($parametrosBusqueda);
