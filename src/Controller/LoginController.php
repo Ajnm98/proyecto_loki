@@ -4,16 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Login;
 use App\Repository\LoginRepository;
-use App\Utils\JsonResponseConverter;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\HttpFoundation\Request;
 
 
@@ -40,7 +35,6 @@ class LoginController extends AbstractController
 
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
-        echo "hola";
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $loginNuevo = new Login();
 
