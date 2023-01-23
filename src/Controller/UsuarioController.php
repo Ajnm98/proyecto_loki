@@ -28,7 +28,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 //    $listJson = $jsonConverter->toJson($listLogin);
 //    return new JsonResponse($listJson, 200, [], true);
 }
-    #[Route('/usuario/buscar', name: 'app_usuario_buscar', methods: ['GET'])]
+    #[Route('/usuario/buscar', name: 'app_usuario_buscar_nombre', methods: ['GET'])]
     public function buscarPorNombre(UsuarioRepository $usuarioRepository,
                                     Request $request): JsonResponse
     {
