@@ -165,10 +165,10 @@ class Usuario
 
         return $this;
     }
-    public function getUsuarioBloqueaId(): ?Bloqueados
-    {
-        return $this->usuario_bloquea_id;
-    }
+//    public function getUsuarioBloqueaId(): ?Bloqueados
+//    {
+//        return $this->usuario_bloquea_id;
+//    }
 
     public function setUsuarioBloqueaId(?Bloqueados $usuario_bloquea_id): self
     {

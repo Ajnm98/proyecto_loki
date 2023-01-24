@@ -30,7 +30,7 @@ class PublicacionController extends AbstractController
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository)//: JsonResponse
     {
 
-        $id = $request->query->get("id");
+        $id = $request->query->get("usuario_id");
         $parametrosBusqueda = array(
             'usuario_id' => $id
         );
