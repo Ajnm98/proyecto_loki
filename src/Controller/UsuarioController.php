@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Repository\UsuarioRepository;
+use JMS\Serializer\Annotation\MaxDepth;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -44,6 +46,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         return $this->json($listUsuarios, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+
         ]);
 
     }

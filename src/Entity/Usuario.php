@@ -7,6 +7,7 @@ use Date;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use phpDocumentor\Reflection\Types\Integer;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -71,7 +72,6 @@ class Usuario
     {
         $this->usuario_bloqueado_id= new ArrayCollection();
     }
-
 
     public function getId(): ?int
     {
@@ -165,11 +165,10 @@ class Usuario
 
         return $this;
     }
-
-//    public function getUsuarioBloqueaId(): ?Bloqueados
-//    {
-//        return $this->usuario_bloquea_id;
-//    }
+    public function getUsuarioBloqueaId(): ?Bloqueados
+    {
+        return $this->usuario_bloquea_id;
+    }
 
     public function setUsuarioBloqueaId(?Bloqueados $usuario_bloquea_id): self
     {

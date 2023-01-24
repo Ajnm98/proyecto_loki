@@ -24,7 +24,7 @@ class BloqueadosController extends AbstractController
 
     public function __construct(private ManagerRegistry $doctrine) {}
 
-    #[Route('/bloqueados', name: 'bloqueados')]
+    #[Route('/bloqueados/list', name: 'bloqueados')]
     public function listarbloqueados(BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
 

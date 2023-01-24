@@ -14,11 +14,11 @@ class Bloqueados
     #[ORM\SequenceGenerator(sequenceName: 'bloqueados_id_seq', initialValue: 1, allocationSize: 100)]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'usuario_bloquea_id', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[ORM\OneToOne(inversedBy: 'usuario_bloquea_id', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'usuario_id')]
     private ?Usuario $usuario_id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'usuario_bloqueado_id', cascade: ['persist', 'remove'], fetch: 'EAGER')]
+    #[ORM\ManyToOne(inversedBy: 'usuario_bloqueado_id', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'bloqueado_id')]
     private ?Usuario $bloqueado_id = null;
 
