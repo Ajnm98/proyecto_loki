@@ -39,5 +39,38 @@ class PublicacionController extends AbstractController
         return $this->json($listPublicacion1);
     }
 
+    #[Route('/publicaciones/usuario/amigo',  methods: ['GET', 'HEAD'])]
+    public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, PublicacionRepository $publicacionRepository)//: JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $array = array();
+
+        $id = $json['usuario_id'];
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+        foreach ($listAmigos as $amigo){
+
+
+            $valoramigo = $amigo->getAmigoId();
+
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $valoramigo
+            );
+
+            array_push($array, $publicacionRepository->findBy($parametrosBusqueda2,[]));
+        }
+
+
+        return $this->json($array, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
+    }
+
 
 }
