@@ -42,7 +42,6 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         $listUsuarios = $usuarioRepository->findBy($parametrosBusqueda);
 
-//        $listJson = $utilidades->toJson($listUsuarios);
 
         return $this->json($listUsuarios, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
