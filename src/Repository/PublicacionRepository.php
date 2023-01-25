@@ -53,6 +53,20 @@ class PublicacionRepository extends ServiceEntityRepository
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
     }
+    public function borrarPublicacionPorUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM publicacion
+            WHERE usuario_id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 
 //    /**
 //     * @return Publicacion2[] Returns an array of Publicacion2 objects

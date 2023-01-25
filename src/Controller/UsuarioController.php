@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Repository\AmigosRepository;
+use App\Repository\BloqueadosRepository;
+use App\Repository\ChatRepository;
 use App\Repository\LoginRepository;
+use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use JMS\Serializer\Annotation\MaxDepth;
@@ -53,13 +57,21 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
     }
 
     #[Route('/usuario/delete', name: 'respuesta_delete', methods: ['POST'])]
-    public function delete(Request $request,LoginRepository $loginRepository,UsuarioRepository $usuarioRepository): JsonResponse
+    public function delete(Request $request,ChatRepository $chatRepository,
+                           PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
+                           LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
+                            AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
 
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
 
         $id = $json['id'];
+        $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
+        $amigosRepository->borrarAmigosPorUsuario($id);
+        $chatRepository->borrarChatPorUsuario($id);
+        $respuestaRepository->borrarRespuestaPorUsuario($id);
+        $publicacionRepository->borrarPublicacionPorUsuario($id);
         $usuarioRepository->borrarUsuario($id);
         $loginRepository->borrarLogin($id);
 

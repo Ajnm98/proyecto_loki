@@ -38,6 +38,21 @@ class BloqueadosRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    public function borrarBloqueadosPorUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM bloqueados
+            WHERE usuario_id = :id 
+            OR bloqueado_id = :id
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 
 //    /**
 //     * @return Bloqueados2[] Returns an array of Bloqueados2 objects
