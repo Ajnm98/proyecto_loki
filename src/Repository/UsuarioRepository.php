@@ -38,4 +38,19 @@ class UsuarioRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+    public function borrarUsuario(int $usuarioID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM usuario
+            WHERE id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioID]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 }
