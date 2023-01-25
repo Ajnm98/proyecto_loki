@@ -19,4 +19,33 @@ class RespuestaRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Respuesta::class);
     }
+
+    public function borrarTodasRespuestasPorPublicacion(int $publicacionID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM respuesta
+            WHERE publicacion_id = :publicacionId 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['publicacionId' => $publicacionID]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+    public function borrarRespuesta(int $respuestaID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM respuesta
+            WHERE id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $respuestaID]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 }

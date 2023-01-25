@@ -71,7 +71,7 @@ class AmigoController extends AbstractController
 
 
     }
-
+// BUSCA POR ID DE LA RELACION EN LA BBDD, CAMBIAR A BUSCAR POR NOMBRE
     #[Route('/amigos/buscar', name: 'amigo_buscar_id', methods: ['GET'])]
     public function buscarPorNombre(AmigosRepository $amigosRepository,
                                     Request $request): JsonResponse
@@ -89,7 +89,42 @@ class AmigoController extends AbstractController
         return $this->json($listAmigos, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ]);
+    }
+    #[Route('/amigos/delete', name: 'amigos_delete', methods: ['POST'])]
+    public function delete(UsuarioRepository $usuarioRepository,Request $request,AmigosRepository $amigosRepository): JsonResponse
+    {
 
+        //Obtener Json del body
+        $json  = json_decode($request->getContent(), true);
+        //CREAR NUEVO USUARIO A PARTIR DEL JSON
+        $amigoNuevo = new Amigos();
+
+        $id = $json['usuario_id'];
+        $amigo = $json['amigo_id'];
+
+        $amigosRepository->borrarAmigo($id,$amigo);
+
+        return new JsonResponse("{ mensaje: Amigo borrado correctamente }", 200, [], true);
+
+    }
+
+    #[Route('/amigos/mis-amigos', name: 'mis-amigos', methods: ['GET'])]
+    public function buscarMisAmigos(AmigosRepository $amigosRepository,
+                                    Request $request): JsonResponse
+    {
+        $id = $request->query->get("usuario_id");
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+//        $listJson = $utilidades->toJson($listUsuarios);
+
+        return $this->json($listAmigos, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
     }
 
 }

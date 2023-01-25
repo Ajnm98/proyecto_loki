@@ -21,4 +21,19 @@ class LoginRepository extends ServiceEntityRepository
         parent::__construct($registry, Login::class);
 
     }
+
+    public function borrarLogin(int $loginID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM login
+            WHERE id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $loginID]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 }

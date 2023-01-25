@@ -20,4 +20,20 @@ class AmigosRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Amigos::class);
     }
+    public function borrarAmigo(int $usuarioId,int $amigoId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM amigos
+            WHERE usuario_id = :usuarioId 
+            and amigo_id = :amigoId 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['usuarioId' => $usuarioId,'amigoId'=>$amigoId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 }

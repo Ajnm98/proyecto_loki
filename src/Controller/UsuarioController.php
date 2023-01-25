@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Repository\LoginRepository;
+use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use JMS\Serializer\Annotation\MaxDepth;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,7 +44,6 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         $listUsuarios = $usuarioRepository->findBy($parametrosBusqueda);
 
-//        $listJson = $utilidades->toJson($listUsuarios);
 
         return $this->json($listUsuarios, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
@@ -51,7 +52,21 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
     }
 
+    #[Route('/usuario/delete', name: 'respuesta_delete', methods: ['POST'])]
+    public function delete(Request $request,LoginRepository $loginRepository,UsuarioRepository $usuarioRepository): JsonResponse
+    {
 
+        //Obtener Json del body
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+        $usuarioRepository->borrarUsuario($id);
+        $loginRepository->borrarLogin($id);
+
+
+        return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
+
+    }
 
 
 

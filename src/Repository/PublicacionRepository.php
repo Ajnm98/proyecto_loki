@@ -39,6 +39,21 @@ class PublicacionRepository extends ServiceEntityRepository
         }
     }
 
+    public function borrarPublicacion(int $publicacionID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM publicacion
+            WHERE id = :publicacionId 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['publicacionId' => $publicacionID]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 //    /**
 //     * @return Publicacion2[] Returns an array of Publicacion2 objects
 //     */
