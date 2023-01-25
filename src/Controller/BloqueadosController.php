@@ -94,41 +94,24 @@ class BloqueadosController extends AbstractController
 
     }
 
-//    #[Route('/bloqueados/desbloquear',  methods: ['POST'])]
-//    public function desbloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
-//    {
-//
-//        $json = json_decode($request->getContent(), true);
-//
-//        //CREAR NUEVO USUARIO A PARTIR DEL JSON
-//        $bloqueadosNuevo = new Bloqueados();
-//
-//        $id = $json['usuario_id'];
-//        $bloqueado_id = $json['bloqueados_id'];
-//
-//        $parametrosBusqueda = array(
-//            'id' => $id
-//        );
-//
-//        $parametrosBusqueda2 = array(
-//            'id' => $bloqueado_id
-//        );
-//
-//
-//        $usuario1 = $usuarioRepository->findOneBy($parametrosBusqueda);
-//        $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
-//
-//
-//        $bloqueadosNuevo->setUsuarioId($usuario1);
-//        $bloqueadosNuevo->setBloqueadoId($usuario2);
-//
-//        $em = $this->doctrine->getManager();
-//        $em->remove($bloqueadosNuevo);
-//        $em->flush();
-//
-//        return new JsonResponse("{ mensaje: Usuario desbloqueado correctamente }", 200, [], true);
-//
-//    }
+
+#[Route('/bloqueados/desbloquear',  methods: ['POST'])]
+    public function desbloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
+    {
+
+        //Obtener Json del body
+        $json  = json_decode($request->getContent(), true);
+
+        $id_usuario = $json['usuario_id'];
+        $id_desbloqueado =$json['bloqueado_id'];
+
+
+        $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
+
+
+        return new JsonResponse("{ mensaje: Usuario desbloqueado correctamente }", 200, [], true);
+
+    }
 
 
     }
