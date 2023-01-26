@@ -24,31 +24,28 @@ class LoginController extends AbstractController
         return $this->json($listLogin, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ]);
-//        $jsonConverter = new JsonResponseConverter();
-//        return $this->json($listLogin);
-//        $listJson = $jsonConverter->toJson($listLogin);
-//        return new JsonResponse($listJson, 200, [], true);
+
     }
-    #[Route('/login/save', name: 'login_crear', methods: ['POST'])]
-    public function save(Request $request): JsonResponse
-    {
-
-        //Obtener Json del body
-        $json  = json_decode($request->getContent(), true);
-        //CREAR NUEVO USUARIO A PARTIR DEL JSON
-        $loginNuevo = new Login();
-
-        $loginNuevo->setEmail($json['email']);
-        $loginNuevo->setPassword($json['password']);
-        $loginNuevo->setRol($json['rol']);
-
-        //GUARDAR
-        $em = $this-> doctrine->getManager();
-        $em->persist($loginNuevo);
-        $em-> flush();
-
-        return new JsonResponse("{ mensaje: Usuario creado correctamente }", 200, [], true);
-    }
+//    #[Route('/login/save', name: 'login_crear', methods: ['POST'])]
+//    public function save(Request $request): JsonResponse
+//    {
+//
+//        //Obtener Json del body
+//        $json  = json_decode($request->getContent(), true);
+//        //CREAR NUEVO USUARIO A PARTIR DEL JSON
+//        $loginNuevo = new Login();
+//
+//        $loginNuevo->setEmail($json['email']);
+//        $loginNuevo->setPassword($json['password']);
+//        $loginNuevo->setRol($json['rol']);
+//
+//        //GUARDAR
+//        $em = $this-> doctrine->getManager();
+//        $em->persist($loginNuevo);
+//        $em-> flush();
+//
+//        return new JsonResponse("{ mensaje: Usuario creado correctamente }", 200, [], true);
+//    }
 
 
 
