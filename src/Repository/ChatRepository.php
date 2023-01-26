@@ -39,6 +39,22 @@ class ChatRepository extends ServiceEntityRepository
         }
     }
 
+//    public function enviarMensaje(int $id_emisor, int $id_receptor, string $texto, string $fecha, string $foto ): array
+//    {
+//        $conn = $this->getEntityManager()->getConnection();
+//
+//        $sql = '
+//            UPDATE publicacion
+//            SET likes = :likessum
+//            WHERE id = :publicacionId
+//            ';
+//
+//        $stmt = $conn->prepare($sql);
+//        $resultSet = $stmt->executeQuery(['likessum' => $likes, 'publicacionId' => $publicacionId]);
+//
+//        return $resultSet->fetchAllAssociative();
+//    }
+
 //    /**
 //     * @return Chat2[] Returns an array of Chat2 objects
 //     */

@@ -2,9 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Chat;
+use App\Entity\Publicacion;
 use App\Repository\ChatRepository;
+use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
+use DateTime;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +19,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 class ChatController extends AbstractController
 {
 
+    public function __construct(private ManagerRegistry $doctrine) {}
     #[Route('/chat', name: 'chat')]
     public function listarchat(ChatRepository $chatRepository)//: JsonResponse
     {
@@ -102,6 +108,50 @@ class ChatController extends AbstractController
         ]);
     }
 
+
+    #[Route('/chat/enviarMensaje', name: 'chat_usuario',  methods: ['POST'])]
+    public function enviarMensaje(Request $request, ChatRepository $chatRepository, UsuarioRepository $usuarioRepository): JsonResponse
+    {
+
+        $json  = json_decode($request->getContent(), true);
+
+        $id_emisor = $json['usuario_id_emisor'];
+        $id_receptor = $json['usuario_id_receptor'];
+        $texto = $json['texto'];
+        $fecha = date('d-m-Y H:i:s');
+        $foto = $json['foto'];
+
+        $chat = new Chat();
+
+        $parametrosBusqueda1 = array(
+            'id' => $id_emisor
+        );
+
+        $parametrosBusqueda2 = array(
+            'id' => $id_receptor
+        );
+
+        $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+        $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+        $chat->setUsuarioIdEmisor($usuarioemisor);
+        $chat->setUsuarioIdReceptor($usuarioreceptor);
+        $chat->setTexto($texto);
+        $chat->setFecha($fecha);
+        $chat->setFoto($foto);
+
+        $em = $this->doctrine->getManager();
+        $em->persist($chat);
+        $em->flush();
+
+
+//        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
+
+        return new JsonResponse("{ mensaje: Mensaje enviado }", 200, [], true);
+
+
+    }
 
 
 

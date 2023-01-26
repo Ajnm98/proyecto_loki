@@ -92,5 +92,29 @@ class PublicacionController extends AbstractController
     }
 
 
+    #[Route('/publicacion/like', name: 'publicacion_delete', methods: ['POST'])]
+    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $likesSumado = $publicacion->getLikes()+1 ;
+
+        $publicacionRepository->sumarLike($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+
+
+    }
+
+
+
 
 }
