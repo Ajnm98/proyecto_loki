@@ -48,9 +48,8 @@ class LoginController extends AbstractController
         $em-> flush();
 
         return new JsonResponse("{ mensaje: Usuario creado correctamente }", 200, [], true);
-
-
     }
+
 
 
 }
