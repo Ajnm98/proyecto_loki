@@ -142,8 +142,6 @@ class PublicacionController extends AbstractController
         $publicacionRepository->sumarLike($id, $likesSumado);
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
-
-
     }
 
 

@@ -129,6 +129,4 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         return new JsonResponse("{ mensaje: usuario creado correctamente }", 200, [], true);
     }
-
-
 }
