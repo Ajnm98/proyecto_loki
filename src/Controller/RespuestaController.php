@@ -72,7 +72,22 @@ class RespuestaController extends AbstractController
 
         return new JsonResponse("{ mensaje: Respuesta publicada correctamente }", 200, [], true);
     }
+    #[Route('/respuesta/buscar-por-publicacion', name: 'respuesta_buscar_por_publicacion', methods: ['GET'])]
+    public function buscarPorNombre(RespuestaRepository $respuestaRepository,
+                                    Request $request): JsonResponse
+    {
+        $id = $request->query->get("publicacion_id");
 
+        $parametrosBusqueda = array(
+            'publicacion_id' => $id
+        );
+
+        $listRespuestas = $respuestaRepository->findBy($parametrosBusqueda);
+
+        return $this->json($listRespuestas, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
+    }
 
 
 }

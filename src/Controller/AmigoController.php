@@ -69,7 +69,6 @@ class AmigoController extends AbstractController
 
         return new JsonResponse("{ mensaje: Amigo enlazado correctamente }", 200, [], true);
     }
-
 // BUSCA POR ID DE LA RELACION EN LA BBDD, CAMBIAR A BUSCAR POR NOMBRE
     #[Route('/amigos/buscar', name: 'amigo_buscar_id', methods: ['GET'])]
     public function buscarPorNombre(AmigosRepository $amigosRepository,
