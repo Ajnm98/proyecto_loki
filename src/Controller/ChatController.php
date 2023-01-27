@@ -139,17 +139,61 @@ class ChatController extends AbstractController
         $chat->setUsuarioIdReceptor($usuarioreceptor);
         $chat->setTexto($texto);
         $chat->setFecha($fecha);
+        //setFechaNacimiento((date_create_from_format('Y/d/m H:i:s',$json['fecha_nacimiento'])));
         $chat->setFoto($foto);
 
         $em = $this->doctrine->getManager();
         $em->persist($chat);
         $em->flush();
-
-
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
-
         return new JsonResponse("{ mensaje: Mensaje enviado }", 200, [], true);
 
+    }
+
+    #[Route('/chat/borrarChat', name: 'borrarChat_usuario',  methods: ['POST'])]
+    public function BorrarChat(Request $request, ChatRepository $chatRepository, UsuarioRepository $usuarioRepository): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $id_emisor = $json['usuario_id_emisor'];
+        $id_receptor = $json['usuario_id_receptor'];
+
+
+        $array = array();
+
+        $parametrosBusqueda = array(
+            'usuario_id_emisor' => $id_emisor,
+            'usuario_id_receptor' => $id_receptor
+        );
+
+        $parametrosBusqueda2 = array(
+            'usuario_id_receptor' => $id_emisor,
+            'usuario_id_emisor' => $id_receptor
+        );
+
+        $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
+        $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
+
+        $listChats = array_merge($listChats1, $listChats2);
+
+        foreach ($listChats as $chat){
+
+            $em = $this->doctrine->getManager();
+            $em->remove($chat);
+            $em->flush();
+        }
+
+        $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
+        $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
+
+        $listChats = array_merge($listChats1, $listChats2);
+
+        if($listChats!=null){
+            return new JsonResponse("{ mensaje: No se ha podido borrar }", 200, [], true);;
+        }
+        else{
+            return new JsonResponse("{ mensaje: Usuarios borrados correctamente }", 200, [], true);
+        }
 
     }
 

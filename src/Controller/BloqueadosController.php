@@ -113,5 +113,39 @@ class BloqueadosController extends AbstractController
 
     }
 
+    #[Route('/bloqueados/buscar',  methods: ['GET'])]
+    public function buscarUsuarioBloqueado(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id_usuario = $json['usuario_id'];
+        $usuario_bloqueado =$json['usuario_bloqueado'];
+
+        $parametrosBusqueda = array(
+            'usuario' => $usuario_bloqueado
+        );
+
+        $bloqueado = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+
+        if ($bloqueado != null) {
+            $bloqueado_id = $bloqueado->getId();
+        } else {
+
+            return new JsonResponse("{ mensaje: No existe usuario bloqueado }", 200, [], true);
+        }
+
+        $parametrosBusqueda2 = array(
+            'usuario_id' => $id_usuario,
+            'bloqueado_id'=> $bloqueado_id
+        );
+
+        $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda2, []);
+
+
+            return $this->json($listbloqueados, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ]);
+    }
+
 
     }
