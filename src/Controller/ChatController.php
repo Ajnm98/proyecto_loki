@@ -189,7 +189,7 @@ class ChatController extends AbstractController
         $listChats = array_merge($listChats1, $listChats2);
 
         if($listChats!=null){
-            return new JsonResponse("{ mensaje: No se ha podido borrar }", 200, [], true);;
+            return new JsonResponse("{ mensaje: No se ha podido borrar }", 200, [], true);
         }
         else{
             return new JsonResponse("{ mensaje: Usuarios borrados correctamente }", 200, [], true);
