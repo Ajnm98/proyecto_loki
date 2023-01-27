@@ -68,6 +68,24 @@ class PublicacionRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+    public function sumarLike(int $publicacionId, int $likes): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            UPDATE publicacion
+            SET likes = :likessum
+            WHERE id = :publicacionId 
+            ';
+
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['likessum' => $likes, 'publicacionId' => $publicacionId]);
+
+        return $resultSet->fetchAllAssociative();
+    }
+
+
+
 //    /**
 //     * @return Publicacion2[] Returns an array of Publicacion2 objects
 //     */

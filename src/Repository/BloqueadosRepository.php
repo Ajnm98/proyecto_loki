@@ -54,6 +54,21 @@ class BloqueadosRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+    public function desbloquear(int $usuario_ID, int $desbloqueado_ID): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM bloqueados
+            WHERE usuario_id = :usuarioId AND bloqueado_id = :desbloqueadoId
+            ';
+
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['usuarioId' => $usuario_ID, 'desbloqueadoId' => $desbloqueado_ID]);
+        return $resultSet->fetchAllAssociative();
+    }
+
+
 //    /**
 //     * @return Bloqueados2[] Returns an array of Bloqueados2 objects
 //     */

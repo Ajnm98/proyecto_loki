@@ -38,39 +38,80 @@ class BloqueadosController extends AbstractController
 
     }
 
-    #[Route('/bloqueados/bloquear',  methods: ['GET', 'HEAD'])]
-    public function bloquearUsuario(Request $request, Request $request2, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
+    #[Route('/bloqueados/bloquear',  methods: ['POST'])]
+    public function bloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
     {
 
-        $usuario_id = $request->query->get("usuario_id");
+        $json = json_decode($request->getContent(), true);
 
-        $usuario_bloqueado = $request2->query->get("bloqueados_id");
+        //CREAR NUEVO USUARIO A PARTIR DEL JSON
+        $bloqueadosNuevo = new Bloqueados();
 
-
-        $BloqueadoNuevo = new Bloqueados();
-
+        $id = $json['usuario_id'];
+        $bloqueado_id = $json['bloqueados_id'];
 
         $parametrosBusqueda = array(
-            'id' => $usuario_id
+            'id' => $id
         );
-
-        $Usuario1 = $usuarioRepository->findBy($parametrosBusqueda,[], limit: 1);
 
         $parametrosBusqueda2 = array(
-            'id' => $usuario_bloqueado
+            'id' => $bloqueado_id
         );
 
-        $Usuario2 = $usuarioRepository->findBy($parametrosBusqueda2,[], limit: 1);
 
-        $BloqueadoNuevo->setUsuarioId($Usuario1[0]);
-        $BloqueadoNuevo->setBloqueadoId($Usuario2[0]);
+        $usuario1 = $usuarioRepository->findOneBy($parametrosBusqueda);
+        $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
 
-        $em = $this-> doctrine->getManager();
-        $bloqueadosRepository->save($BloqueadoNuevo);
-        $em-> flush();
 
-        return $this->json("{ mensaje: Usuario creado correctamente }");
+        $bloqueadosNuevo->setUsuarioId($usuario1);
+        $bloqueadosNuevo->setBloqueadoId($usuario2);
+
+        $em = $this->doctrine->getManager();
+        $em->persist($bloqueadosNuevo);
+        $em->flush();
+
+        return new JsonResponse("{ mensaje: Bloqueado enlazado correctamente }", 200, [], true);
 
     }
 
-}
+    #[Route('/bloqueados/listUser', name: 'bloqueadosUsuario')]
+    public function listarbloqueadosUsuario(Request $request,BloqueadosRepository $bloqueadosRepository): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+
+        $id = $json['usuario_id'];
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
+
+        return $this->json($listbloqueados, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
+
+    }
+
+
+#[Route('/bloqueados/desbloquear',  methods: ['POST'])]
+    public function desbloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
+    {
+
+        //Obtener Json del body
+        $json  = json_decode($request->getContent(), true);
+
+        $id_usuario = $json['usuario_id'];
+        $id_desbloqueado =$json['bloqueado_id'];
+
+
+        $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
+
+
+        return new JsonResponse("{ mensaje: Usuario desbloqueado correctamente }", 200, [], true);
+
+    }
+
+
+    }

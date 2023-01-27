@@ -62,4 +62,20 @@ class RespuestaRepository extends ServiceEntityRepository
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
     }
+
+    public function sumarLikeRespuesta(int $respuestaId, int $likes): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            UPDATE respuesta
+            SET likes = :likessum
+            WHERE id = :publicacionId 
+            ';
+
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['likessum' => $likes, 'publicacionId' => $respuestaId]);
+
+        return $resultSet->fetchAllAssociative();
+    }
 }

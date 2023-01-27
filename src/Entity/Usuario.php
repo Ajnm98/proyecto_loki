@@ -165,7 +165,6 @@ class Usuario
 
         return $this;
     }
-
 //    public function getUsuarioBloqueaId(): ?Bloqueados
 //    {
 //        return $this->usuario_bloquea_id;

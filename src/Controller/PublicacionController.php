@@ -41,13 +41,46 @@ class PublicacionController extends AbstractController
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository): JsonResponse
     {
 
-        $id = $request->query->get("id");
+        $id = $request->query->get("usuario_id");
         $parametrosBusqueda = array(
             'usuario_id' => $id
         );
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
         return $this->json($listPublicacion1);
+    }
+
+    #[Route('/publicaciones/usuario/amigo',  methods: ['GET', 'HEAD'])]
+    public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, PublicacionRepository $publicacionRepository)//: JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $array = array();
+
+        $id = $json['usuario_id'];
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+        foreach ($listAmigos as $amigo){
+
+
+            $valoramigo = $amigo->getAmigoId();
+
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $valoramigo
+            );
+
+            array_push($array, $publicacionRepository->findBy($parametrosBusqueda2,[]));
+        }
+
+
+        return $this->json($array, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
     }
 
 
@@ -91,5 +124,29 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
     }
+    #[Route('/publicacion/like', name: 'publicacion_delete', methods: ['POST'])]
+    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $likesSumado = $publicacion->getLikes()+1 ;
+
+        $publicacionRepository->sumarLike($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+
+
+    }
+
+
+
 
 }

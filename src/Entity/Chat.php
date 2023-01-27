@@ -26,12 +26,12 @@ class Chat
     #[ORM\JoinColumn(name: 'texto',nullable: false)]
     private ?string $texto = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[ORM\JoinColumn(name: 'fecha',nullable: false)]
-    private ?\DateTimeInterface $fecha = null;
+    private ?string $fecha = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[ORM\JoinColumn(name: 'foto',nullable: false)]
+    #[ORM\JoinColumn(name: 'foto',nullable: true)]
     private ?string $foto = null;
 
     public function getId(): ?int
@@ -80,7 +80,7 @@ class Chat
         return $this->fecha->format('Y-m-d H:i:s');
     }
 
-    public function setFecha(?\DateTimeInterface $fecha): self
+    public function setFecha(?string $fecha): self
     {
         $this->fecha = $fecha;
 

@@ -72,6 +72,30 @@ class RespuestaController extends AbstractController
 
         return new JsonResponse("{ mensaje: Respuesta publicada correctamente }", 200, [], true);
     }
+
+
+    #[Route('/respuesta/like', name: 'publicacion_delete', methods: ['POST'])]
+    public function sumarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $respuestaRepository->findOneBy($parametrosBusqueda);
+
+
+        $likesSumado = $publicacion->getLikes()+1 ;
+
+        $respuestaRepository->sumarLikeRespuesta($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+
+
+    }
     #[Route('/respuesta/buscar-por-publicacion', name: 'respuesta_buscar_por_publicacion', methods: ['GET'])]
     public function buscarPorNombre(RespuestaRepository $respuestaRepository,
                                     Request $request): JsonResponse
