@@ -53,4 +53,36 @@ class UsuarioRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+    public function buscarNick(string $nick): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+            SELECT *
+            FROM usuario
+            WHERE nick LIKE :nick
+            ";
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['nick' => $nick]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
+    public function buscarNombre(string $nombre): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+            SELECT *
+            FROM usuario
+            WHERE nombre LIKE :nombre
+            ";
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['nombre' => $nombre]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 }

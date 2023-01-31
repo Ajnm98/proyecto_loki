@@ -36,19 +36,18 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
     public function buscarPorNombre(UsuarioRepository $usuarioRepository,
                                     Request $request): JsonResponse
     {
-        $nombre = $request->query->get("usuario");
+        $json = json_decode($request->getContent(), true);
+        $nick = $json['nombre'];
+        $a = "%";
+        $final= $a.$nick.$a;
 
-        $parametrosBusqueda = array(
-            'usuario' => $nombre
-        );
+        $usuario = $usuarioRepository->buscarNombre($final);
 
-        $listUsuarios = $usuarioRepository->findBy($parametrosBusqueda);
-
-
-        return $this->json($listUsuarios, 200, [], [
+        return $this->json($usuario, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
 
         ]);
+
 
     }
 
@@ -65,6 +64,27 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
 
         return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
+
+    }
+
+
+    #[Route('/usuario/buscarNick', name: 'app_usuario_buscar_nick', methods: ['GET'])]
+    public function buscarPorNick(UsuarioRepository $usuarioRepository,
+                                    Request $request): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $nick = $json['nick'];
+        $a = "%";
+        $final= $a.$nick.$a;
+
+        $usuario = $usuarioRepository->buscarNick($final);
+
+
+        return $this->json($usuario, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+
+        ]);
 
     }
 
