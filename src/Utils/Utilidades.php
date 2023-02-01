@@ -17,32 +17,32 @@ use Symfony\Component\Serializer\Serializer;
 
 class Utilidades
 {
-//    public function  hashPassword($password):string
-//    {
-//
-//        $factory = new PasswordHasherFactory([
-//            'common' => ['algorithm' => 'bcrypt'],
-//            'memory-hard' => ['algorithm' => 'sodium'],
-//        ]);
-//
-//        $passwordHasher = $factory->getPasswordHasher('common');
-//
-//        return $passwordHasher->hash($password);
-//
-//    }
-//
-//    public function  verify($passwordPlain, $passwordBD):bool
-//    {
-//        $factory = new PasswordHasherFactory([
-//            'common' => ['algorithm' => 'bcrypt'],
-//            'memory-hard' => ['algorithm' => 'sodium'],
-//        ]);
-//
-//        $passwordHasher = $factory->getPasswordHasher('common');
-//
-//        return $passwordHasher->verify($passwordBD,$passwordPlain);
-//
-//    }
+    public function  hashPassword($password):string
+    {
+
+        $factory = new PasswordHasherFactory([
+            'common' => ['algorithm' => 'bcrypt'],
+            'memory-hard' => ['algorithm' => 'sodium'],
+        ]);
+
+        $passwordHasher = $factory->getPasswordHasher('common');
+
+        return $passwordHasher->hash($password);
+
+    }
+
+    public function  verify($passwordPlain, $passwordBD):bool
+    {
+        $factory = new PasswordHasherFactory([
+            'common' => ['algorithm' => 'bcrypt'],
+            'memory-hard' => ['algorithm' => 'sodium'],
+        ]);
+
+        $passwordHasher = $factory->getPasswordHasher('common');
+
+        return $passwordHasher->verify($passwordBD,$passwordPlain);
+
+    }
     public function  generateApiToken(Usuario $user, ApiKeyRepository $apiKeyRepository):string
     {
         //GENERO UN OBJETO CON API KEY NUEVO

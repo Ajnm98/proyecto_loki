@@ -11,6 +11,7 @@ use App\Repository\LoginRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
+use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use JMS\Serializer\Annotation\MaxDepth;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -89,7 +90,8 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
         return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
     }
     #[Route('/usuario/registrar', name: 'usuario_save_corto', methods: ['POST'])]
-    public function save(LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,Request $request): JsonResponse
+    public function save(LoginRepository $loginRepository,Utilidades $utilidades,
+                         UsuarioRepository $usuarioRepository,Request $request): JsonResponse
     {
 
         //Obtener Json del body
@@ -100,7 +102,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         $usuario = $json['usuario'];
         $email = $json['email'];
-        $password = $json['password'];
+        $password = $utilidades->hashPassword($json['password']);
 
 
         //primero guardamos el login

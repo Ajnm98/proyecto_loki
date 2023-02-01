@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\ApiKey;
 use App\Entity\Login;
+use App\Entity\Usuario;
 use App\Repository\LoginRepository;
+use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -28,13 +31,12 @@ class LoginController extends AbstractController
         return $this->json($listLogin, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ]);
-
     }
 
     #[Route('/login', name: 'app_login', methods: ["POST"])]
 //    #[OA\Tag(name: 'Login')]
 //    #[OA\RequestBody(description: "Dto de autentificación", content: new OA\JsonContent(ref: new Model(type: LoginDto::class)))]
-    public function login(Request $request, Utils $utils): JsonResponse
+    public function login(Request $request, Utilidades $utils): JsonResponse
     {
 
         //CARGAR REPOSITORIOS
@@ -89,8 +91,6 @@ class LoginController extends AbstractController
             ]);
         }
     }
-
-
 
 
 //    #[Route('/login/save', name: 'login_crear', methods: ['POST'])]
