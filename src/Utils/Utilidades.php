@@ -55,7 +55,7 @@ class Utilidades
         $tokenData = [
             'user_id' => $user->getId(),
             'username' => $user->getId(),
-            'user_rol' => $user->getRol()->getDescripcion(),
+            'user_rol' => $user->getLogin()->getRol(),
             'fecha_expiracion' => $fechaExpiracion,
         ];
 

@@ -50,22 +50,23 @@ class LoginController extends AbstractController
         $json_body = json_decode($request->getContent(), true);
 
         //Datos Usuario
-        $username = $json_body["username"];
+        $username = $json_body["usuario"];
         $password = $json_body["password"];
 
         //Validar que los credenciales son correcto
         if($username != null and $password !=null){
 
-            $user = $userRepository->findOneBy(array("username"=> $username));
+            $user = $userRepository->findOneBy(array("usuario"=> $username));
 
 
             if($user != null){
-                $verify = $utils-> verify($password, $user->getPassword());
+                $verify = $utils-> verify($password, $user->getLogin()->getPassword());
                 if($verify){
 
-                    $token = $apikeyRepository-> findApiKeyValida($user);
+                    $token = $apikeyRepository-> findApiKeyValida($user->getId());
 
-                    if($token != null){
+
+                    if(!empty($token)){
                         return $this->json([
                             'token' => $token->getToken()
                         ]);

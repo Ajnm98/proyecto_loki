@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
 
+
 /**
  * @extends ServiceEntityRepository<ApiKey>
  *
@@ -57,19 +58,23 @@ class ApiKeyRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-    public function findApiKeyValida($usuario): ?ApiKey
+    public function findApiKeyValida($usuario): ?array
     {
         $fechaActual = date("Y-m-d H:i:s");
-        $fecha = DateTime::createFromFormat('Y-m-d H:i:s', $fechaActual);
+//        $fecha = DateTime::createFromFormat('Y-m-d H:i:s', $fechaActual);
 
+        $conn = $this->getEntityManager()->getConnection();
 
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.usuario = :val and a.fechaExpiracion >= :fecha ')
-            ->setParameter('val', $usuario)
-            ->setParameter('fecha', $fecha)
-            ->getQuery()
-            ->getOneOrNullResult()
-            ;
+        $sql = '
+            select token FROM api_key
+            WHERE usuario_id = :id 
+            and fecha_expiracion >= :fecha 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuario,'fecha' =>$fechaActual]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
     }
 
 

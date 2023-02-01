@@ -68,6 +68,9 @@ class Usuario
     #[ORM\OneToMany(mappedBy: 'usuario_id', targetEntity: Publicacion::class)]
     private Collection $usuario_publicacion_id;
 
+    #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: ApiKey::class, orphanRemoval: true)]
+    private Collection $apiKeys;
+
     public function __construct()
     {
         $this->usuario_bloqueado_id= new ArrayCollection();
@@ -213,6 +216,23 @@ class Usuario
             if ($usuarioBloqueadoId->getBloqueadoId() === $this) {
                 $usuarioBloqueadoId->setBloqueadoId(null);
             }
+        }
+
+        return $this;
+    }
+//    /**
+//     * @return Collection<int, ApiKey>
+//     */
+//    public function getApiKeys(): Collection
+//    {
+//        return $this->apiKeys;
+//    }
+
+    public function addApiKey(ApiKey $apiKey): self
+    {
+        if (!$this->apiKeys->contains($apiKey)) {
+            $this->apiKeys->add($apiKey);
+            $apiKey->setUsuario($this);
         }
 
         return $this;
