@@ -35,8 +35,8 @@ class Usuario
     #[ORM\JoinColumn(name: 'login_id',nullable: false)]
     private ?Login $login = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $fecha = null;
+    #[ORM\Column(length: 500,nullable: true)]
+    private ?string $fecha = null;
 
     #[ORM\Column]
     private ?int $telefono = null;
@@ -126,7 +126,7 @@ class Usuario
     }
     public function getfecha(): ?String
     {
-        return $this->fecha->format('Y-m-d H:i:s');
+        return $this->fecha;
     }
 
     public function setFecha(?DateTime $fecha): self
