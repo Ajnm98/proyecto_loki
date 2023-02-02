@@ -25,7 +25,7 @@ class ApiKey
     private ?\DateTimeInterface $fechaExpiracion = null;
 
     #[ORM\ManyToOne(inversedBy: 'apiKeys')]
-    #[ORM\JoinColumn(name: 'id_usuario',nullable: false)]
+    #[ORM\JoinColumn(name: 'usuario_id',nullable: false)]
     private ?Usuario $usuario = null;
 
     public function getId(): ?int
