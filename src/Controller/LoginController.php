@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
-
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 
 class LoginController extends AbstractController
@@ -23,13 +23,14 @@ class LoginController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
-    #[Route('/login/list', name: 'login')]
+    #[Route('/login/list', name: 'login', methods: ['GET'])]
     public function listar(LoginRepository $loginRepository): JsonResponse
     {
         $listLogin = $loginRepository->findAll();
 
         return $this->json($listLogin, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
 

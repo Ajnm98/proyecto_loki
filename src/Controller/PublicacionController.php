@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Validator\Constraints\Date;
 
 class PublicacionController extends AbstractController
@@ -27,12 +28,13 @@ class PublicacionController extends AbstractController
         $this-> doctrine = $managerRegistry;
     }
 
-    #[Route('/publicacion/list', name: 'listar_publicacion')]
+    #[Route('/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
     public function listarpublicacion(PublicacionRepository $publicacionRepository): JsonResponse
     {
         $listPublicacion = $publicacionRepository->findAll();
         return $this->json($listPublicacion, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 
     }
@@ -80,6 +82,8 @@ class PublicacionController extends AbstractController
 
         return $this->json($array, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
         ]);
     }
 

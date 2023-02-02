@@ -29,13 +29,14 @@ class AmigoController extends AbstractController
         $this-> doctrine = $managerRegistry;
     }
 
-    #[Route('/amigos/list', name: 'amigos')]
+    #[Route('/amigos/list', name: 'amigos', methods: ['GET'])]
     public function listar(AmigosRepository $amigosRepository): JsonResponse
     {
         $listAmigos = $amigosRepository->findAll();
 
         return $this->json($listAmigos, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 //        $jsonConverter = new JsonResponseConverter();
 //        $listJson = $jsonConverter->toJson($listAmigos);
@@ -87,6 +88,7 @@ class AmigoController extends AbstractController
 
         return $this->json($listAmigos, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
     #[Route('/amigos/delete', name: 'amigos_delete', methods: ['POST'])]
@@ -123,6 +125,7 @@ class AmigoController extends AbstractController
 
         return $this->json($listAmigos, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
 
@@ -159,7 +162,8 @@ class AmigoController extends AbstractController
 
             return $this->json($listAmigo, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ]);
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+                ]);
 
 
 

@@ -25,7 +25,7 @@ class BloqueadosController extends AbstractController
 
     public function __construct(private ManagerRegistry $doctrine) {}
 
-    #[Route('/bloqueados/list', name: 'bloqueados')]
+    #[Route('/bloqueados/list', name: 'bloqueados', methods: ['GET'])]
     public function listarbloqueados(BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
 
@@ -76,7 +76,7 @@ class BloqueadosController extends AbstractController
 
     }
 
-    #[Route('/bloqueados/listUser', name: 'bloqueadosUsuario')]
+    #[Route('/bloqueados/listUser', name: 'bloqueadosUsuario', methods: ['GET'])]
     public function listarbloqueadosUsuario(Request $request,BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
 
@@ -92,6 +92,7 @@ class BloqueadosController extends AbstractController
 
         return $this->json($listbloqueados, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 
     }
@@ -146,6 +147,7 @@ class BloqueadosController extends AbstractController
 
             return $this->json($listbloqueados, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
     }
 
