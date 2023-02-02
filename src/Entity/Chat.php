@@ -77,7 +77,7 @@ class Chat
 
     public function getFecha(): ?string
     {
-        return $this->fecha->format('Y-m-d H:i:s');
+        return $this->fecha;
     }
 
     public function setFecha(?string $fecha): self

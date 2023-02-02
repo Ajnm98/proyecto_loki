@@ -8,6 +8,7 @@ use App\Repository\AmigosRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\JsonResponseConverter;
 use App\Utils\Prueba;
+use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -124,5 +125,46 @@ class AmigoController extends AbstractController
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ]);
     }
+
+    #[Route('/amigos/buscarAmigo', name: 'amigo_buscar_id', methods: ['GET'])]
+    public function buscarAmigo(AmigosRepository $amigosRepository,
+                                    Request $request, UsuarioRepository $usuarioRepository): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+
+        $id_usuario = $json['usuario_id'];
+        $amigo = $json['usuario_amigo'];
+
+        $parametrosBusqueda = array(
+            'usuario' => $amigo
+        );
+
+        $amigo = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+
+        if ($amigo != null) {
+            $amigo_id = $amigo->getId();
+        } else {
+
+
+        return new JsonResponse("{ mensaje: No existe el usuario amigo }", 200, [], true);
+    }
+             $parametrosBusqueda2 = array(
+                 'usuario_id' => $id_usuario,
+                 'amigo_id'=> $amigo_id
+        );
+
+        $listAmigo = $amigosRepository->findBy($parametrosBusqueda2, []);
+
+
+            return $this->json($listAmigo, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ]);
+
+
+
+
+    }
+
 
 }
