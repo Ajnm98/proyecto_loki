@@ -45,6 +45,12 @@ class Utilidades
     }
     public function  generateApiToken(Usuario $user, ApiKeyRepository $apiKeyRepository):string
     {
+        //BORRADO SI TIENE UN TOKEN NO VALIDO
+        $token_invalido = $apiKeyRepository->findOneBy(array("usuario"=>$user->getId()));
+        if($token_invalido!=null){
+            $apiKeyRepository->remove($token_invalido);
+        }
+
         //GENERO UN OBJETO CON API KEY NUEVO
         $apiKey = new ApiKey();
         $apiKey->setUsuario($user);

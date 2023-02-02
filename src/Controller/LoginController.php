@@ -38,13 +38,10 @@ class LoginController extends AbstractController
 //    #[OA\RequestBody(description: "Dto de autentificación", content: new OA\JsonContent(ref: new Model(type: LoginDto::class)))]
     public function login(Request $request, Utilidades $utils): JsonResponse
     {
-
         //CARGAR REPOSITORIOS
         $em = $this-> doctrine->getManager();
         $userRepository = $em->getRepository(Usuario::class);
         $apikeyRepository = $em->getRepository(ApiKey::class);
-
-
 
         //Cargar datos del cuerpo
         $json_body = json_decode($request->getContent(), true);
@@ -65,7 +62,6 @@ class LoginController extends AbstractController
 
                     $token = $apikeyRepository-> findApiKeyValida($user->getId());
 
-
                     if(!empty($token)){
                         return $this->json([
                             'token' => $token->getToken()
@@ -78,17 +74,17 @@ class LoginController extends AbstractController
                     }
                 }else{
                     return $this->json([
-                        'message' => "Contraseña no válida" ,
+                        'message' => "Password no valida" ,
                     ]);
                 }
 
             }
             return $this->json([
-                'message' => "Usuario no válido" ,
+                'message' => "Usuario no valido" ,
             ]);
         }else{
             return $this->json([
-                'message' => "No ha indicado usuario y contraseña" ,
+                'message' => "No ha indicado usuario y password" ,
             ]);
         }
     }
