@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 
 class BloqueadosController extends AbstractController
@@ -31,6 +32,7 @@ class BloqueadosController extends AbstractController
         $listbloqueados = $bloqueadosRepository->findAll();
         return $this->json($listbloqueados, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 //        $jsonConverter = new JsonResponseConverter();
 //        $listJson = $jsonConverter->toJson($listLogin);
