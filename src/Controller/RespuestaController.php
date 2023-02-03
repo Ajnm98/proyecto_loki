@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class RespuestaController extends AbstractController
 {
@@ -21,7 +22,7 @@ class RespuestaController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
-    #[Route('/respuesta/list', name: 'respuesta_listar')]
+    #[Route('/respuesta/list', name: 'respuesta_listar', methods: ['GET'])]
     public function listar(RespuestaRepository $respuestaRepository): JsonResponse
     {
 
@@ -29,6 +30,7 @@ class RespuestaController extends AbstractController
 
         return $this->json($listRespuesta, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
 
@@ -110,6 +112,7 @@ class RespuestaController extends AbstractController
 
         return $this->json($listRespuestas, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
 

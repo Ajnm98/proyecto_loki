@@ -32,7 +32,7 @@ class UsuarioController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
-    #[Route('/usuario/list', name: 'usuarioListar')]
+    #[Route('/usuario/list', name: 'usuarioListar', methods: ['GET'])]
 public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 {
 
@@ -61,7 +61,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         return $this->json($usuario, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 
     }
@@ -145,7 +145,7 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
         return $this->json($usuario, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 
     }
