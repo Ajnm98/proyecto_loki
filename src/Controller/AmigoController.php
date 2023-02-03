@@ -58,7 +58,7 @@ class AmigoController extends AbstractController
     #[Route('/api/amigos/save', name: 'amigos_save', methods: ['POST'])]
     #[OA\Tag(name: 'Amigos')]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearAmigoDTO::class)))]
-    #[OA\Response(response: 200,description: "Usuario creado correctamente")]
+    #[OA\Response(response: 200,description: "Amigos guardado correctamente")]
     public function save(UsuarioRepository $usuarioRepository,Request $request): JsonResponse
     {
 

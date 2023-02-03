@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Dto\ChatDTO;
+use App\Dto\DtoConverters;
+use App\Dto\UsuarioDTO;
 use App\Entity\Chat;
 use App\Entity\Publicacion;
 use App\Repository\ChatRepository;
@@ -10,27 +13,45 @@ use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 class ChatController extends AbstractController
 {
 
     public function __construct(private ManagerRegistry $doctrine) {}
-    #[Route('/chat', name: 'chat')]
-    public function listarchat(ChatRepository $chatRepository)//: JsonResponse
+    #[Route('/api/chat', name: 'chat',methods: ['GET'])]
+    #[OA\Tag(name:'Chat')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: ChatDTO::class))))]
+
+    public function listarchat(ChatRepository $chatRepository,  DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
+
         $listChat = $chatRepository->findAll();
-        return $this->json($listChat, 200, [], [
+
+        foreach($listChat as $user){
+            $usuarioDto = $converters-> chatToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ]);
     }
 
-    #[Route('/chat/privado',  methods: ['GET', 'HEAD'])]
-    public function listarchatUsuario(Request $request, ChatRepository $chatRepository)//: JsonResponse
+    #[Route('/api/chat/privado',  methods: ['GET'])]
+    #[OA\Tag(name:'Chat')]
+    #[OA\Parameter(name: "id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: ChatDTO::class))))]
+    public function listarchatUsuario(Request $request, ChatRepository $chatRepository,
+          DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
 
         $arraySort = new ArraySort();
@@ -54,11 +75,24 @@ class ChatController extends AbstractController
 
         $listArraySort = $arraySort->array_sort($resultado, 'fecha', SORT_ASC);
 
-        return $this->json($listArraySort);
+        foreach($listArraySort as $user){
+            $usuarioDto = $converters-> chatToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        ]);
+
+
 
     }
 
-    #[Route('/chat/listachatsUsuario', name: 'chat_usuario',  methods: ['GET', 'HEAD'])]
+    #[Route('/api/chat/listachatsUsuario', name: 'chats_usuario',  methods: ['GET'])]
+    #[OA\Tag(name:'Chat')]
+    #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
     public function listarchatsAbiertosUsuario(Request $request, ChatRepository $chatRepository): JsonResponse
     {
 
@@ -105,6 +139,10 @@ class ChatController extends AbstractController
 
         return $this->json($array, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj) {
+                return $obj->getId();
+            }
+
         ]);
     }
 

@@ -3,6 +3,8 @@
 namespace App\Dto;
 
 use App\Entity\Amigos;
+use App\Entity\Bloqueados;
+use App\Entity\Chat;
 use App\Entity\Login;
 use App\Entity\Usuario;
 
@@ -18,6 +20,34 @@ class DtoConverters
         return $amigosDto;
 
     }
+
+    public function BloqueadoToDto(Bloqueados $bloqueado):BloqueadosDTO
+    {
+        $bloqueadoDto = new BloqueadosDTO();
+        $bloqueadoDto->setId($bloqueado->getId());
+        $bloqueadoDto->setUsuarioId($this->UsuarioToDto($bloqueado->getUsuarioId()));
+        $bloqueadoDto->setBloqueadoId($this->UsuarioToDto($bloqueado->getBloqueadoId()));
+
+        return $bloqueadoDto;
+
+    }
+
+    public function ChatToDto(Chat $chat):ChatDTO
+    {
+        $chatDto = new ChatDTO();
+        $chatDto->setId($chat->getId());
+        $chatDto->setUsuarioIdEmisor($this->UsuarioToDto($chat->getUsuarioIdEmisor()));
+        $chatDto->setUsuarioIdReceptor($this->UsuarioToDto($chat->getUsuarioIdReceptor()));
+        $chatDto->setTexto($chat->getTexto());
+        $chatDto->setFecha($chat->getFecha());
+        if($chat->getFoto()!=null) {
+            $chatDto->setFoto($chat->getFoto());
+        }
+
+        return $chatDto;
+
+    }
+
 
     public function UsuarioToDto(Usuario $usuario):UsuarioDTO
     {
