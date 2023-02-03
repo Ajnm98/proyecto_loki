@@ -24,7 +24,7 @@ class Publicacion
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[ORM\JoinColumn(name: 'fecha',nullable: false)]
-    private ?\DateTimeInterface $fecha = null;
+    private ?\DateTime $fecha = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[ORM\JoinColumn(name: 'foto',nullable: false)]
