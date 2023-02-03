@@ -14,6 +14,7 @@ use phpDocumentor\Reflection\Types\Integer;
 class Respuesta
 {
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 

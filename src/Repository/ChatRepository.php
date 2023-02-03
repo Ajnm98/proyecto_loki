@@ -39,6 +39,22 @@ class ChatRepository extends ServiceEntityRepository
         }
     }
 
+    public function borrarChatPorUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM chat
+            WHERE usuario_id_emisor = :id 
+            OR usuario_id_receptor = :id
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 //    public function enviarMensaje(int $id_emisor, int $id_receptor, string $texto, string $fecha, string $foto ): array
 //    {
 //        $conn = $this->getEntityManager()->getConnection();

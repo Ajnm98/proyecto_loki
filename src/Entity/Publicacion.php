@@ -22,9 +22,9 @@ class Publicacion
     #[ORM\JoinColumn(name: 'texto',nullable: false)]
     private ?string $texto = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[ORM\JoinColumn(name: 'fecha',nullable: false)]
-    private ?\DateTime $fecha = null;
+    private ?string $fecha = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[ORM\JoinColumn(name: 'foto',nullable: false)]
@@ -67,12 +67,12 @@ class Publicacion
         return $this;
     }
 
-    public function getFecha(): ?\DateTimeInterface
+    public function getFecha(): ?string
     {
         return $this->fecha;
     }
 
-    public function setFecha(?\DateTimeInterface $fecha): self
+    public function setFecha(?string $fecha): self
     {
         $this->fecha = $fecha;
 

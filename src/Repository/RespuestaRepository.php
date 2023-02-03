@@ -48,6 +48,20 @@ class RespuestaRepository extends ServiceEntityRepository
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
     }
+    public function borrarRespuestaPorUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM respuesta
+            WHERE usuario_id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 
     public function sumarLikeRespuesta(int $respuestaId, int $likes): array
     {

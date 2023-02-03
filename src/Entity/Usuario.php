@@ -35,8 +35,8 @@ class Usuario
     #[ORM\JoinColumn(name: 'login_id',nullable: false)]
     private ?Login $login = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?DateTime $fecha = null;
+    #[ORM\Column(length: 500,nullable: true)]
+    private ?string $fecha = null;
 
     #[ORM\Column]
     private ?int $telefono = null;
@@ -67,6 +67,9 @@ class Usuario
 
     #[ORM\OneToMany(mappedBy: 'usuario_id', targetEntity: Publicacion::class)]
     private Collection $usuario_publicacion_id;
+
+    #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: ApiKey::class, orphanRemoval: true)]
+    private Collection $apiKeys;
 
     public function __construct()
     {
@@ -123,7 +126,7 @@ class Usuario
     }
     public function getfecha(): ?String
     {
-        return $this->fecha->format('Y-m-d H:i:s');
+        return $this->fecha;
     }
 
     public function setFecha(?DateTime $fecha): self
@@ -165,10 +168,10 @@ class Usuario
 
         return $this;
     }
-//    public function getUsuarioBloqueaId(): ?Bloqueados
-//    {
-//        return $this->usuario_bloquea_id;
-//    }
+    public function getUsuarioBloqueaId(): ?Bloqueados
+    {
+        return $this->usuario_bloquea_id;
+    }
 
     public function setUsuarioBloqueaId(?Bloqueados $usuario_bloquea_id): self
     {
@@ -213,6 +216,23 @@ class Usuario
             if ($usuarioBloqueadoId->getBloqueadoId() === $this) {
                 $usuarioBloqueadoId->setBloqueadoId(null);
             }
+        }
+
+        return $this;
+    }
+//    /**
+//     * @return Collection<int, ApiKey>
+//     */
+//    public function getApiKeys(): Collection
+//    {
+//        return $this->apiKeys;
+//    }
+
+    public function addApiKey(ApiKey $apiKey): self
+    {
+        if (!$this->apiKeys->contains($apiKey)) {
+            $this->apiKeys->add($apiKey);
+            $apiKey->setUsuario($this);
         }
 
         return $this;

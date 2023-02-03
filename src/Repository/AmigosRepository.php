@@ -35,5 +35,20 @@ class AmigosRepository extends ServiceEntityRepository
         // returns an array of arrays (i.e. a raw data set)
         return $resultSet->fetchAllAssociative();
     }
+    public function borrarAmigosPorUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM amigos
+            WHERE usuario_id = :id 
+            OR amigo_id = :id
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
 
 }
