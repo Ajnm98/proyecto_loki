@@ -9,7 +9,7 @@ class PublicacionDTO
     private int $id;
     private UsuarioDTO $usuario_id;
     private string $texto;
-    private \DateTime $fecha;
+    private string $fecha;
     private string $foto;
     private int $likes;
     private string $tag;
@@ -67,20 +67,21 @@ class PublicacionDTO
     }
 
     /**
-     * @return \DateTime
+     * @return string
      */
-    public function getFecha(): \DateTime
+    public function getFecha(): string
     {
         return $this->fecha;
     }
 
     /**
-     * @param \DateTime $fecha
+     * @param string $fecha
      */
-    public function setFecha(\DateTime $fecha): void
+    public function setFecha(string $fecha): void
     {
         $this->fecha = $fecha;
     }
+
 
     /**
      * @return string

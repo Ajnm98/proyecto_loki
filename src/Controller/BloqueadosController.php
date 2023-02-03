@@ -91,7 +91,7 @@ class BloqueadosController extends AbstractController
         $em->persist($bloqueadosNuevo);
         $em->flush();
 
-        return new JsonResponse(" Bloqueado enlazado correctamente ", 200, []);
+        return new JsonResponse(" Bloqueado enlazado correctamente ", 200, [], true);
 
     }
 
@@ -122,6 +122,7 @@ class BloqueadosController extends AbstractController
 
         return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
 
     }
@@ -192,6 +193,7 @@ class BloqueadosController extends AbstractController
 
             return $this->json($listJson, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
             ]);
     }
 

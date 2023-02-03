@@ -2,13 +2,17 @@
 
 namespace App\Dto;
 
+use Symfony\Component\Serializer\Annotation\Ignore;
+
 class UsuarioDTO
 {
     private int $id;
     private string $usuario;
     private string $nombre;
     private string $nick;
+
     private LoginDTO $login;
+
     private string $fecha;
     private int $telefono;
     private int $foto;

@@ -6,11 +6,12 @@ use App\Entity\Amigos;
 use App\Entity\Bloqueados;
 use App\Entity\Chat;
 use App\Entity\Login;
+use App\Entity\Publicacion;
 use App\Entity\Usuario;
 
 class DtoConverters
 {
-    public function AmigosToDto(Amigos $amigos):AmigosDTO
+    public function amigosToDto(Amigos $amigos):AmigosDTO
     {
         $amigosDto = new AmigosDTO();
         $amigosDto->setId($amigos->getId());
@@ -32,7 +33,7 @@ class DtoConverters
 
     }
 
-    public function ChatToDto(Chat $chat):ChatDTO
+    public function chatToDto(Chat $chat):ChatDTO
     {
         $chatDto = new ChatDTO();
         $chatDto->setId($chat->getId());
@@ -49,7 +50,42 @@ class DtoConverters
     }
 
 
+    public function publicacionToDto(Publicacion $publicacion):PublicacionDTO
+    {
+        $publicacionDto = new PublicacionDTO();
+        $publicacionDto->setId($publicacion->getId());
+        $publicacionDto->setUsuarioId($this->UsuarioToDto($publicacion->getUsuarioId()));
+        $publicacionDto->setTexto($publicacion->getTexto());
+        $publicacionDto->setFecha($publicacion->getFecha());
+        if($publicacion->getFoto()!=null) {
+            $publicacionDto->setFoto($publicacion->getFoto());
+        }
+        if($publicacion->getLikes()!=null) {
+            $publicacionDto->setLikes($publicacion->getLikes());
+        }
+        if($publicacion->getTag()!=null) {
+            $publicacionDto->setTag($publicacion->getTag());
+        }
+
+        return $publicacionDto;
+    }
+
     public function UsuarioToDto(Usuario $usuario):UsuarioDTO
+    {
+
+        $usuarioDto = new UsuarioDTO();
+        $usuarioDto->setId($usuario->getId());
+        $usuarioDto->setUsuario($usuario->getUsuario());
+        $usuarioDto->setNombre($usuario->getNombre());
+        $usuarioDto->setNick($usuario->getNick());
+//        $usuarioDto->setLogin($this->LoginToDto($usuario->getLogin()));
+        $usuarioDto->setTelefono($usuario->getTelefono());
+
+        return $usuarioDto;
+
+    }
+
+    public function UsuarioToDto2(Usuario $usuario):UsuarioDTO
     {
 
         $usuarioDto = new UsuarioDTO();
@@ -64,7 +100,7 @@ class DtoConverters
 
     }
 
-    public function LoginToDto(Login $login):LoginDTO
+    public function loginToDto(Login $login):LoginDTO
     {
         $loginDto = new LoginDTO();
         $loginDto->setId($login->getId());

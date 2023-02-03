@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Dto\BorrarPublicacionDTO;
+use App\Dto\DtoConverters;
+use App\Dto\PublicacionDTO;
 use App\Entity\Publicacion;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
@@ -10,7 +13,9 @@ use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
+use App\Utils\JsonResponseConverter;
 use Doctrine\Persistence\ManagerRegistry;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +23,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Validator\Constraints\Date;
+use OpenApi\Attributes as OA;
 
 class PublicacionController extends AbstractController
 {
@@ -28,19 +34,33 @@ class PublicacionController extends AbstractController
         $this-> doctrine = $managerRegistry;
     }
 
-    #[Route('/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
-    public function listarpublicacion(PublicacionRepository $publicacionRepository): JsonResponse
+    #[Route('/api/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
+    public function listarpublicacion(PublicacionRepository $publicacionRepository,
+                                      DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
         $listPublicacion = $publicacionRepository->findAll();
-        return $this->json($listPublicacion, 200, [], [
+
+        foreach($listPublicacion as $user){
+            $usuarioDto = $converters->publicacionToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 
     }
 
-    #[Route('/publicaciones/usuario',  methods: ['GET', 'HEAD'])]
-    public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository): JsonResponse
+    #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
+    public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository,
+                                             DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
 
         $id = $request->query->get("usuario_id");
@@ -49,17 +69,31 @@ class PublicacionController extends AbstractController
         );
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
-        return $this->json($listPublicacion1);
+
+        foreach($listPublicacion1 as $user){
+            $usuarioDto = $converters->publicacionToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
+        ]);
     }
 
-    #[Route('/publicaciones/usuario/amigo',  methods: ['GET', 'HEAD'])]
+    #[Route('/api/publicaciones/usuario/amigo',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, PublicacionRepository $publicacionRepository)//: JsonResponse
     {
 
-        $json = json_decode($request->getContent(), true);
+//        $json = json_decode($request->getContent(), true);
         $array = array();
 
-        $id = $json['usuario_id'];
+        $id = $request->query->get("usuario_id");
 
         $parametrosBusqueda = array(
             'usuario_id' => $id
@@ -89,7 +123,10 @@ class PublicacionController extends AbstractController
 
 
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
-    #[Route('/publicacion/delete', name: 'publicacion_delete', methods: ['POST'])]
+    #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['POST'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarPublicacionDTO::class)))]
+    #[OA\Response(response: 200,description: "Publicacion borrada correctamente")]
     public function delete(Request $request,PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository): JsonResponse
     {
 
@@ -105,6 +142,9 @@ class PublicacionController extends AbstractController
     }
 
 #[Route('/publicacion/save', name: 'publicacion_crear', methods: ['POST'])]
+#[OA\Tag(name: 'Publicacion')]
+#[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarPublicacionDTO::class)))]
+#[OA\Response(response: 200,description: "Publicacion creada correctamente")]
     public function save(UsuarioRepository $usuarioRepository,Request $request): JsonResponse
     {
 

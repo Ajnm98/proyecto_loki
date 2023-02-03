@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Dto\BorrarChatDTO;
 use App\Dto\ChatDTO;
+use App\Dto\CrearChatDTO;
 use App\Dto\DtoConverters;
 use App\Dto\UsuarioDTO;
 use App\Entity\Chat;
@@ -29,8 +31,8 @@ class ChatController extends AbstractController
     #[Route('/api/chat', name: 'chat',methods: ['GET'])]
     #[OA\Tag(name:'Chat')]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: ChatDTO::class))))]
-
-    public function listarchat(ChatRepository $chatRepository,  DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
+    public function listarchat(ChatRepository $chatRepository,
+                               DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
 
         $listChat = $chatRepository->findAll();
@@ -43,6 +45,7 @@ class ChatController extends AbstractController
 
         return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
     }
 
@@ -83,6 +86,7 @@ class ChatController extends AbstractController
 
         return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
 
 
@@ -147,14 +151,17 @@ class ChatController extends AbstractController
     }
 
 
-    #[Route('/chat/enviarMensaje', name: 'chat_usuario',  methods: ['POST'])]
+    #[Route('/api/chat/enviarMensaje', name: 'chat_usuario',  methods: ['POST'])]
+    #[OA\Tag(name:'Chat')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
+    #[OA\Response(response: 200,description: "Mensaje enviado correctamente")]
     public function enviarMensaje(Request $request, ChatRepository $chatRepository, UsuarioRepository $usuarioRepository): JsonResponse
     {
 
         $json  = json_decode($request->getContent(), true);
 
-        $id_emisor = $json['usuario_id_emisor'];
-        $id_receptor = $json['usuario_id_receptor'];
+        $id_emisor = $json['usuarioIdEmisor'];
+        $id_receptor = $json['usuarioIdReceptor'];
         $texto = $json['texto'];
         $fecha = date('d-m-Y H:i:s');
         $foto = $json['foto'];
@@ -184,17 +191,21 @@ class ChatController extends AbstractController
         $em->persist($chat);
         $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
-        return new JsonResponse("{ mensaje: Mensaje enviado }", 200, [], true);
+        return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
 
     }
 
-    #[Route('/chat/borrarChat', name: 'borrarChat_usuario',  methods: ['POST'])]
+    #[Route('/api/chat/borrarChat', name: 'borrarChat_usuario',  methods: ['POST'])]
+    #[OA\Tag(name:'Chat')]
+    #[OA\RequestBody(description: "Dto del chat", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarChatDTO::class)))]
+    #[OA\Response(response: 200,description: "Chat borrado correctamente")]
+    #[OA\Response(response: 100,description: "No se ha podido borrar correctamente")]
     public function BorrarChat(Request $request, ChatRepository $chatRepository, UsuarioRepository $usuarioRepository): JsonResponse
     {
 
         $json = json_decode($request->getContent(), true);
-        $id_emisor = $json['usuario_id_emisor'];
-        $id_receptor = $json['usuario_id_receptor'];
+        $id_emisor = $json['usuarioIdEmisor'];
+        $id_receptor = $json['usuarioIdReceptor'];
 
 
         $array = array();
@@ -227,10 +238,10 @@ class ChatController extends AbstractController
         $listChats = array_merge($listChats1, $listChats2);
 
         if($listChats!=null){
-            return new JsonResponse("{ mensaje: No se ha podido borrar }", 200, [], true);
+            return new JsonResponse("{ mensaje: No se ha podido borrar correctamente }", 100, [], true);
         }
         else{
-            return new JsonResponse("{ mensaje: Usuarios borrados correctamente }", 200, [], true);
+            return new JsonResponse("{ mensaje: Chat borrado correctamente }", 200, [], true);
         }
 
     }

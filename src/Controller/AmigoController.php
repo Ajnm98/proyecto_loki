@@ -84,7 +84,7 @@ class AmigoController extends AbstractController
         $em->persist($amigoNuevo);
         $em-> flush();
 
-        return new JsonResponse("Amigo enlazado correctamente ", 200, []);
+        return new JsonResponse("Amigo enlazado correctamente ", 200, [], true);
 
 
     }
@@ -115,6 +115,7 @@ class AmigoController extends AbstractController
 
         return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
     }
     #[Route('/api/amigos/delete', name: 'amigos_delete', methods: ['POST'])]
@@ -164,6 +165,7 @@ class AmigoController extends AbstractController
 
         return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
     }
 
@@ -209,6 +211,7 @@ class AmigoController extends AbstractController
         }
             return $this->json($listJson, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
             ]);
 
 
