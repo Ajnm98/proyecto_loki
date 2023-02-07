@@ -1,18 +1,22 @@
 <?php
 
 namespace App\Controller;
+use App\Dto\DtoConverters;
+use App\Dto\RespuestaDTO;
 use App\Entity\Respuesta;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\JsonResponseConverter;
 use Doctrine\Persistence\ManagerRegistry;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use OpenApi\Attributes as OA;
 
 class RespuestaController extends AbstractController
 {
@@ -22,11 +26,20 @@ class RespuestaController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
-    #[Route('/respuesta/list', name: 'respuesta_listar', methods: ['GET'])]
-    public function listar(RespuestaRepository $respuestaRepository): JsonResponse
+    #[Route('/api/respuesta/list', name: 'respuesta_listar', methods: ['GET'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: RespuestaDTO::class))))]
+    public function listar(RespuestaRepository $respuestaRepository,
+                           DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
 
         $listRespuesta = $respuestaRepository->findAll();
+
+        foreach($listRespuesta as $user){
+            $usuarioDto = $converters->respuestaToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
 
         return $this->json($listRespuesta, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
@@ -76,7 +89,7 @@ class RespuestaController extends AbstractController
     }
 
 
-    #[Route('/respuesta/like', name: 'publicacion_delete', methods: ['POST'])]
+    #[Route('/respuesta/like', name: 'publicacion_like', methods: ['POST'])]
     public function sumarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
     {
         $json  = json_decode($request->getContent(), true);

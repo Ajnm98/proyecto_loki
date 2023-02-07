@@ -7,6 +7,7 @@ use App\Entity\Bloqueados;
 use App\Entity\Chat;
 use App\Entity\Login;
 use App\Entity\Publicacion;
+use App\Entity\Respuesta;
 use App\Entity\Usuario;
 
 class DtoConverters
@@ -69,6 +70,27 @@ class DtoConverters
 
         return $publicacionDto;
     }
+
+    public function respuestaToDto(Respuesta $respuesta):RespuestaDTO
+    {
+
+    $respuestaDto = new RespuestaDTO();
+    $respuestaDto->setId($respuesta->getId());
+    $respuestaDto->setUsuarioId($this->UsuarioToDto($respuesta->getUsuarioId()));
+    $respuestaDto->setPublicacionId($this->publicacionToDto($respuesta->getPublicacionId()));
+    $respuestaDto->setTexto($respuesta->getTexto());
+    $respuestaDto->setFecha($respuesta->getFecha());
+     if($respuesta->getFoto()!=null) {
+         $respuestaDto->setFoto($respuesta->getFoto());
+     }
+    $respuestaDto->setLikes($respuesta->getLikes());
+      if($respuesta->getTag()!=null) {
+          $respuestaDto->setTag($respuesta->getTag());
+      }
+
+        return $respuestaDto;
+    }
+
 
     public function UsuarioToDto(Usuario $usuario):UsuarioDTO
     {

@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Dto\BorrarPublicacionDTO;
+use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
+use App\Dto\SumarRestarLikeDTO;
 use App\Entity\Publicacion;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
@@ -141,9 +143,9 @@ class PublicacionController extends AbstractController
 
     }
 
-#[Route('/publicacion/save', name: 'publicacion_crear', methods: ['POST'])]
+#[Route('/api/publicacion/save', name: 'publicacion_crear', methods: ['POST'])]
 #[OA\Tag(name: 'Publicacion')]
-#[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarPublicacionDTO::class)))]
+#[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearPublicacionDTO::class)))]
 #[OA\Response(response: 200,description: "Publicacion creada correctamente")]
     public function save(UsuarioRepository $usuarioRepository,Request $request): JsonResponse
     {
@@ -152,7 +154,7 @@ class PublicacionController extends AbstractController
         $json  = json_decode($request->getContent(), true);
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $publicacionNuevo = new Publicacion();
-        $usuarioid = $json['usuario_id'];
+        $usuarioid = $json['usuarioId'];
         $usuario = $usuarioRepository->findOneBy(array("id"=>$usuarioid));
         $fecha = date('Y-m-d H:i:s');
 
@@ -168,7 +170,10 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
     }
-    #[Route('/publicacion/like', name: 'publicacion_delete', methods: ['POST'])]
+    #[Route('/api/publicacion/like', name: 'publicacionlike', methods: ['POST'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
+    #[OA\Response(response: 200,description: "Like sumado correctamente")]
     public function sumarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
     {
         $json  = json_decode($request->getContent(), true);
