@@ -57,7 +57,6 @@ class LoginController extends AbstractController
     #[OA\Response(response: 300,description: "Password no valida")]
     #[OA\Response(response: 400,description: "Usuario no valido")]
     #[OA\Response(response: 500,description: "No ha indicado usuario y password")]
-
     public function login(Request $request, Utilidades $utils): JsonResponse
     {
         //CARGAR REPOSITORIOS
