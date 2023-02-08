@@ -77,18 +77,4 @@ class ApiKeyRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
-
-//    public function findApiKeyValida($id_usuario):string
-//    {
-//
-//        $rsm = new ResultSetMapping();
-//
-//        $query = $this->getEntityManager()->createNativeQuery('select token from api_key ak  where ak.id_usuario  = ? and ak.fecha_expiracion >= ? ', $rsm);
-//        $query->setParameter(1, $id_usuario);
-//        $query->setParameter(2, date("Y-m-d"));
-//        $token = $query->getResult();
-//
-//        return  $token;
-//
-//    }
 }

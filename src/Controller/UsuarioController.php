@@ -6,6 +6,7 @@ use App\Dto\BorrarUsuarioDTO;
 use App\Dto\CrearUsuarioDTO;
 use App\Dto\DtoConverters;
 use App\Dto\UsuarioDTO;
+use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
@@ -23,7 +24,6 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -59,10 +59,6 @@ class UsuarioController extends AbstractController
         AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
     ]);
-//    $jsonConverter = new JsonResponseConverter();
-//        return $this->json($listLogin);
-//    $listJson = $jsonConverter->toJson($listLogin);
-//    return new JsonResponse($listJson, 200, [], true);
 }
     #[Route('/api/usuario/buscar', name: 'appUsuarioBuscarNombre', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
@@ -163,7 +159,6 @@ class UsuarioController extends AbstractController
     public function buscarPorNick(UsuarioRepository $usuarioRepository,
                                   Request $request,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-
         $json = json_decode($request->getContent(), true);
         $nick = $request->query->get("nick");
         $a = "%";
@@ -176,6 +171,38 @@ class UsuarioController extends AbstractController
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
+    }
+
+    #[Route('/usuario/mi-usuario', name: 'app_mi_usuario', methods: ['GET'])]
+    public function miUsuario(UsuarioRepository $usuarioRepository,
+                                  Request $request,Utilidades $utils): JsonResponse
+    {
+        $em = $this-> doctrine->getManager();
+        $userRepository = $em->getRepository(Usuario::class);
+        $apikeyRepository = $em->getRepository(ApiKey::class);
+
+        $apikey = $request->query->get("api_key");
+        $compruebaAcceso = $utils->esApiKeyValida($apikey, 1, $apikeyRepository, $userRepository);
+
+
+        if ($compruebaAcceso) {
+
+            $usuario = $usuarioRepository->findAll();
+
+            return $this->json($usuario, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            ]);
+
+        } else {
+            return $this->json([
+                'message' => "No tiene permiso",
+            ]);
+        }
+
+
 
     }
+
+
 }
