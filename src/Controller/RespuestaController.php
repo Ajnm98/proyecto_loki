@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Controller;
+use App\Dto\BorrarRespuestaDTO;
+use App\Dto\CrearRespuestaDTO;
 use App\Dto\DtoConverters;
 use App\Dto\RespuestaDTO;
 use App\Entity\Respuesta;
@@ -41,13 +43,16 @@ class RespuestaController extends AbstractController
             $listJson[] = json_decode($json);
         }
 
-        return $this->json($listRespuesta, 200, [], [
+        return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
 
-    #[Route('/respuesta/delete', name: 'respuesta_delete', methods: ['POST'])]
+    #[Route('/api/respuesta/delete', name: 'respuestaDelete', methods: ['POST'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
+    #[OA\Response(response: 200,description: "Respuesta borrada correctamente")]
     public function delete(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
     {
 
@@ -60,7 +65,10 @@ class RespuestaController extends AbstractController
 
         return new JsonResponse("{ mensaje: Respuesta borrada correctamente }", 200, [], true);
     }
-    #[Route('/respuesta/save', name: 'respuesta_save', methods: ['POST'])]
+    #[Route('/api/respuesta/save', name: 'respuestaSave', methods: ['POST'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:CrearRespuestaDTO::class)))]
+    #[OA\Response(response: 200,description: "Respuesta publicada correctamente")]
     public function save(PublicacionRepository $publicacionRepository,UsuarioRepository $usuarioRepository,RespuestaRepository $respuestaRepository,Request $request): JsonResponse
     {
 
@@ -69,8 +77,8 @@ class RespuestaController extends AbstractController
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $nuevaRespuesta = new Respuesta();
 
-        $usuarioId = $json['usuario_id'];
-        $publicacionId = $json['publicacion_id'];
+        $usuarioId = $json['usuarioId'];
+        $publicacionId = $json['publicacionId'];
 
         $usuario= $usuarioRepository->findOneBy(array("id"=>$usuarioId));
         $publicacion= $publicacionRepository->findOneBy(array("id"=>$publicacionId));
@@ -89,7 +97,10 @@ class RespuestaController extends AbstractController
     }
 
 
-    #[Route('/respuesta/like', name: 'publicacion_like', methods: ['POST'])]
+    #[Route('/api/respuesta/like', name: 'publicacionLike', methods: ['POST'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
+    #[OA\Response(response: 200,description: "Like sumado correctamente")]
     public function sumarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
     {
         $json  = json_decode($request->getContent(), true);
@@ -111,9 +122,12 @@ class RespuestaController extends AbstractController
 
 
     }
-    #[Route('/respuesta/buscar-por-publicacion', name: 'respuesta_buscar_por_publicacion', methods: ['GET'])]
+    #[Route('/api/respuesta/buscar-por-publicacion', name: 'respuestaBuscarPorPublicacion', methods: ['GET'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\Parameter(name: "publicacion_id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: RespuestaDTO::class))))]
     public function buscarPorNombre(RespuestaRepository $respuestaRepository,
-                                    Request $request): JsonResponse
+                                    Request $request,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
         $id = $request->query->get("publicacion_id");
 
@@ -123,7 +137,13 @@ class RespuestaController extends AbstractController
 
         $listRespuestas = $respuestaRepository->findBy($parametrosBusqueda);
 
-        return $this->json($listRespuestas, 200, [], [
+        foreach($listRespuestas as $user){
+            $usuarioDto = $converters->respuestaToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);

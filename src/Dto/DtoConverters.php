@@ -97,12 +97,19 @@ class DtoConverters
 
         $usuarioDto = new UsuarioDTO();
         $usuarioDto->setId($usuario->getId());
-        $usuarioDto->setUsuario($usuario->getUsuario());
-        $usuarioDto->setNombre($usuario->getNombre());
-        $usuarioDto->setNick($usuario->getNick());
-//        $usuarioDto->setLogin($this->LoginToDto($usuario->getLogin()));
-        $usuarioDto->setTelefono($usuario->getTelefono());
 
+        $usuarioDto->setUsuario($usuario->getUsuario());
+
+        if($usuario->getNombre()!=null) {
+            $usuarioDto->setNombre($usuario->getNombre());
+        }
+        if($usuario->getNick()!=null) {
+            $usuarioDto->setNick($usuario->getNick());
+        }
+//        $usuarioDto->setLogin($this->LoginToDto($usuario->getLogin()));
+        if($usuario->getTelefono()!=null) {
+            $usuarioDto->setTelefono($usuario->getTelefono());
+        }
         return $usuarioDto;
 
     }
@@ -112,11 +119,30 @@ class DtoConverters
 
         $usuarioDto = new UsuarioDTO();
         $usuarioDto->setId($usuario->getId());
-        $usuarioDto->setUsuario($usuario->getUsuario());
-        $usuarioDto->setNombre($usuario->getNombre());
-        $usuarioDto->setNick($usuario->getNick());
-        $usuarioDto->setLogin($this->LoginToDto($usuario->getLogin()));
-        $usuarioDto->setTelefono($usuario->getTelefono());
+
+        if($usuario->getUsuario()!=null) {
+            $usuarioDto->setUsuario($usuario->getUsuario());
+        }
+        if($usuario->getNombre()!=null) {
+            $usuarioDto->setNombre($usuario->getNombre());
+        }
+        if($usuario->getNick()!=null) {
+            $usuarioDto->setNick($usuario->getNick());
+        }
+        if($usuario->getLogin()!=null) {
+            $usuarioDto->setLogin($this->LoginToDto($usuario->getLogin()));
+        }
+        if($usuario->getTelefono()!=null) {
+            $usuarioDto->setTelefono($usuario->getTelefono());
+        }
+
+        if($usuario->getFoto()!=null) {
+            $usuarioDto->setFoto($usuario->getFoto());
+        }
+
+        if($usuario->getEncabezado()!=null) {
+            $usuarioDto->setEncabezado($usuario->getEncabezado());
+        }
 
         return $usuarioDto;
 

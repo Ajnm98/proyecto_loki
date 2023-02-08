@@ -15,7 +15,8 @@ class UsuarioDTO
 
     private string $fecha;
     private int $telefono;
-    private int $foto;
+    private string $foto;
+    private string $encabezado;
 
 
     public function __construct()
@@ -136,20 +137,37 @@ class UsuarioDTO
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getFoto(): int
+    public function getFoto(): string
     {
         return $this->foto;
     }
 
     /**
-     * @param int $foto
+     * @param string $foto
      */
-    public function setFoto(int $foto): void
+    public function setFoto(string $foto): void
     {
         $this->foto = $foto;
     }
+
+    /**
+     * @return string
+     */
+    public function getEncabezado(): string
+    {
+        return $this->encabezado;
+    }
+
+    /**
+     * @param string $encabezado
+     */
+    public function setEncabezado(string $encabezado): void
+    {
+        $this->encabezado = $encabezado;
+    }
+
 
 
 }
