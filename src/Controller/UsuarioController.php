@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
@@ -13,11 +14,9 @@ use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
-use JMS\Serializer\Annotation\MaxDepth;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -38,15 +37,10 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
 
     $listLogin = $usuarioRepository->findAll();
 
-
     return $this->json($listLogin, 200, [], [
         AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
         ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
     ]);
-//    $jsonConverter = new JsonResponseConverter();
-//        return $this->json($listLogin);
-//    $listJson = $jsonConverter->toJson($listLogin);
-//    return new JsonResponse($listJson, 200, [], true);
 }
     #[Route('/usuario/buscar', name: 'app_usuario_buscar_nombre', methods: ['GET'])]
     public function buscarPorNombre(UsuarioRepository $usuarioRepository,
@@ -134,7 +128,6 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
     public function buscarPorNick(UsuarioRepository $usuarioRepository,
                                   Request $request): JsonResponse
     {
-
         $json = json_decode($request->getContent(), true);
         $nick = $json['nick'];
         $a = "%";
@@ -147,6 +140,38 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
+    }
+
+    #[Route('/usuario/mi-usuario', name: 'app_mi_usuario', methods: ['GET'])]
+    public function miUsuario(UsuarioRepository $usuarioRepository,
+                                  Request $request,Utilidades $utils): JsonResponse
+    {
+        $em = $this-> doctrine->getManager();
+        $userRepository = $em->getRepository(Usuario::class);
+        $apikeyRepository = $em->getRepository(ApiKey::class);
+
+        $apikey = $request->query->get("api_key");
+        $compruebaAcceso = $utils->esApiKeyValida($apikey, 1, $apikeyRepository, $userRepository);
+
+
+        if ($compruebaAcceso) {
+
+            $usuario = $usuarioRepository->findAll();
+
+            return $this->json($usuario, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            ]);
+
+        } else {
+            return $this->json([
+                'message' => "No tiene permiso",
+            ]);
+        }
+
+
 
     }
+
+
 }
