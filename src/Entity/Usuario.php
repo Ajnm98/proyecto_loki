@@ -191,13 +191,13 @@ class Usuario
     }
 
 
-//    /**
-//     * @return Collection<int, Bloqueados>
-//     */
-//    public function getUsuarioBloqueadoId(): Collection
-//    {
-//        return $this->usuario_bloqueado_id;
-//    }
+    /**
+     * @return Collection<int, Bloqueados>
+     */
+    public function getUsuarioBloqueadoId(): Collection
+    {
+        return $this->usuario_bloqueado_id;
+    }
 
     public function addUsuarioBloqueadoId(Bloqueados $usuarioBloqueadoId): self
     {
@@ -220,13 +220,13 @@ class Usuario
 
         return $this;
     }
-//    /**
-//     * @return Collection<int, ApiKey>
-//     */
-//    public function getApiKeys(): Collection
-//    {
-//        return $this->apiKeys;
-//    }
+    /**
+     * @return Collection<int, ApiKey>
+     */
+    public function getApiKeys(): Collection
+    {
+        return $this->apiKeys;
+    }
 
     public function addApiKey(ApiKey $apiKey): self
     {

@@ -9,11 +9,7 @@ use App\Repository\UsuarioRepository;
 use DateTime;
 use ReallySimpleJWT\Token;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactory;
-use Symfony\Component\Serializer\Context\Normalizer\ObjectNormalizerContextBuilder;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
+
 
 class Utilidades
 {

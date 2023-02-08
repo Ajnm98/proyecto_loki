@@ -82,11 +82,11 @@ class LoginController extends AbstractController
                 $verify = $utils-> verify($password, $user->getLogin()->getPassword());
                 if($verify){
 
-                    $token = $apikeyRepository-> findApiKeyValida($user->getId());
+                    $token = $apikeyRepository->findApiKeyValida($user->getId());
 
                     if(!empty($token)){
                         return $this->json([
-                            'token' => $token->getToken(), 100
+                            'token' => $token[0], 100
                         ]);
                     }else{
                         $tokenNuevo = $utils->generateApiToken($user, $apikeyRepository);
