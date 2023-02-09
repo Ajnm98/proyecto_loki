@@ -12,7 +12,10 @@ use App\Repository\ChatRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
+use App\Utils\Utilidades;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,23 +35,30 @@ class BloqueadosController extends AbstractController
 
     #[Route('/api/bloqueados/list', name: 'bloqueados',methods: ['GET'])]
     #[OA\Tag(name:'Bloqueados')]
+    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
-    public function listarbloqueados(BloqueadosRepository $bloqueadosRepository,  DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    #[OA\Response(response: 401,description: "Unauthorized")]
+    public function listarbloqueados(BloqueadosRepository $bloqueadosRepository,Utilidades $utils, Request $request,
+                                     DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
+        if($utils->comprobarPermisos($request, 0)) {
+            $listbloqueados = $bloqueadosRepository->findAll();
 
-        $listbloqueados = $bloqueadosRepository->findAll();
+            foreach ($listbloqueados as $user) {
+                $usarioDto = $converters->BloqueadoToDto($user);
+                $json = $jsonResponseConverter->toJson($usarioDto, null);
+                $listJson[] = json_decode($json);
+            }
 
-        foreach($listbloqueados as $user){
-            $usarioDto = $converters->BloqueadoToDto($user);
-            $json = $jsonResponseConverter->toJson($usarioDto,null);
-            $listJson[] = json_decode($json);
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+            ]);
         }
-
-
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-        ]);
+        else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
 //        $jsonConverter = new JsonResponseConverter();
 //        $listJson = $jsonConverter->toJson($listLogin);
 //       return new JsonResponse($listJson, 200, [], true);
@@ -57,42 +67,79 @@ class BloqueadosController extends AbstractController
 
     #[Route('/api/bloqueados/bloquear',  methods: ['POST'])]
     #[OA\Tag(name: 'Bloqueados')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearBloqueadoDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario bloqueado correctamente")]
-    public function bloquearUsuario(Request $request, UsuarioRepository $usuarioRepository,
+    #[OA\Response(response: 300,description: "No se pudo bloquear correctamente")]
+    #[OA\Response(response: 400,description: "No puedes bloquear usuarios a otros usuario")]
+    public function bloquearUsuario(Request $request, UsuarioRepository $usuarioRepository,Utilidades $utils,
                                     BloqueadosRepository $bloqueadosRepository)//: JsonResponse
     {
 
         $json = json_decode($request->getContent(), true);
-
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];;
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $bloqueadosNuevo = new Bloqueados();
 
         $id = $json['usuarioId'];
-        $bloqueado_id = $json['bloqueadosId'];
+        $bloqueado_id = $json['bloqueadoId'];
 
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'id' => $id
+            );
 
-        $parametrosBusqueda2 = array(
-            'id' => $bloqueado_id
-        );
-
-
-        $usuario1 = $usuarioRepository->findOneBy($parametrosBusqueda);
-        $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
+            $parametrosBusqueda2 = array(
+                'id' => $bloqueado_id
+            );
 
 
-        $bloqueadosNuevo->setUsuarioId($usuario1);
-        $bloqueadosNuevo->setBloqueadoId($usuario2);
+            $usuario1 = $usuarioRepository->findOneBy($parametrosBusqueda);
+            $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
 
-        $em = $this->doctrine->getManager();
-        $em->persist($bloqueadosNuevo);
-        $em->flush();
 
-        return new JsonResponse(" Bloqueado enlazado correctamente ", 200, [], true);
+            $bloqueadosNuevo->setUsuarioId($usuario1);
+            $bloqueadosNuevo->setBloqueadoId($usuario2);
 
+            $em = $this->doctrine->getManager();
+            $em->persist($bloqueadosNuevo);
+            $em->flush();
+
+            return new JsonResponse(" Bloqueado enlazado correctamente ", 200, [], true);
+        }
+        elseif($utils->comprobarPermisos($request, 1)) {
+
+            if ($idu != $id) {
+                return new JsonResponse("{ mensaje: No puedes bloquear usuarios a otros usuario}", 400, [], true);
+            }
+            else {
+                $parametrosBusqueda = array(
+                    'id' => $id
+                );
+
+                $parametrosBusqueda2 = array(
+                    'id' => $bloqueado_id
+                );
+
+
+                $usuario1 = $usuarioRepository->findOneBy($parametrosBusqueda);
+                $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+                $bloqueadosNuevo->setUsuarioId($usuario1);
+                $bloqueadosNuevo->setBloqueadoId($usuario2);
+
+                $em = $this->doctrine->getManager();
+                $em->persist($bloqueadosNuevo);
+                $em->flush();
+
+                return new JsonResponse(" Bloqueado enlazado correctamente ", 200, [], true);
+            }
+        }
+        else{
+            return new JsonResponse("{ mensaje: No se pudo bloquear correctamente }", 300, [], true);
+        }
     }
 
     #[Route('/api/bloqueados/listUser', name: 'bloqueadosUsuario',methods: ['GET'])]
@@ -128,24 +175,44 @@ class BloqueadosController extends AbstractController
     }
 
 
-    #[Route('/api/bloqueados/desbloquear',  methods: ['POST'])]
+    #[Route('/api/bloqueados/desbloquear',  methods: ['DELETE'])]
     #[OA\Tag(name: 'Bloqueados')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearBloqueadoDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario desbloqueado correctamente")]
-    public function desbloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, BloqueadosRepository $bloqueadosRepository)//: JsonResponse
+    #[OA\Response(response: 300,description: "No se pudo desbloquear correctamente")]
+    #[OA\Response(response: 400,description: "No puedes desbloquear usuarios de otro usuario")]
+    public function desbloquearUsuario(Request $request, UsuarioRepository $usuarioRepository, Utilidades $utils,
+                                       BloqueadosRepository $bloqueadosRepository)//: JsonResponse
     {
 
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
-
+        $apikey = $request->headers->get('apikey');
         $id_usuario = $json['usuarioId'];
         $id_desbloqueado =$json['bloqueadoId'];
+        $idu = Token::getPayload($apikey)["user_id"];;
+
+        if($utils->comprobarPermisos($request, 0)) {
+            $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
+            return new JsonResponse(" Usuario desbloqueado correctamente ", 200, [], true);
+        }
+        elseif($utils->comprobarPermisos($request, 1)){{
+            if($id_usuario!=$idu){
+                return new JsonResponse("{ mensaje: No puedes desbloquear usuarios de otro usuario}", 400, [], true);
+            }
+            else {
+                $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
+                return new JsonResponse(" Usuario desbloqueado correctamente ", 200, [], true);
+            }
+
+        }
+        }
+        else{
+            return new JsonResponse("{ mensaje: No se pudo desbloquear correctamente }", 300, [], true);
+        }
 
 
-        $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
-
-
-        return new JsonResponse(" Usuario desbloqueado correctamente ", 200, [], true);
 
     }
 

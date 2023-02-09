@@ -88,11 +88,11 @@ class Utilidades
         $rol_name= Token::getPayload($token)["user_rol"];
         $usuario= $usuarioRepository->findOneBy(array("id" => $id_usuario));
 
-        return $apiKey == null
-            or $permisoRequerido == $rol_name
-            or $apiKey->getUsuario()->getId() == $id_usuario
-            or $apiKey->getFechaExpiracion() <= $fechaActual
-            or Token::validate($token, $usuario->getLogin()->getPassword());
+        return $apiKey != null
+            and $permisoRequerido == $rol_name
+            and $apiKey->getUsuario()->getId() == $id_usuario
+            and $apiKey->getFechaExpiracion() >= $fechaActual
+            and Token::validate($token, $usuario->getLogin()->getPassword());
     }
 
     public function comprobarPermisos(Request $request, $permiso){

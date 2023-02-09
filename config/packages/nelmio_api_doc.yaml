@@ -4,6 +4,14 @@ nelmio_api_doc:
             title: Loki
             description: Una red social de categoría
             version: 1.0.0
+        components:
+                securitySchemes:
+                    apikey:
+                        type: apiKey
+                        scheme: bearer
+                        name: apiKey
+                        bearerFormat: JWT
+                        in: header
     areas: # to filter documented areas
         path_patterns:
             - ^/api(?!/doc$) # Accepts routes under /api except /api/doc

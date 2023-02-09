@@ -125,7 +125,7 @@ class PublicacionController extends AbstractController
 
 
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
-    #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['POST'])]
+    #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Publicacion')]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarPublicacionDTO::class)))]
     #[OA\Response(response: 200,description: "Publicacion borrada correctamente")]

@@ -49,7 +49,7 @@ class RespuestaController extends AbstractController
         ]);
     }
 
-    #[Route('/api/respuesta/delete', name: 'respuestaDelete', methods: ['POST'])]
+    #[Route('/api/respuesta/delete', name: 'respuestaDelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Respuesta')]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
     #[OA\Response(response: 200,description: "Respuesta borrada correctamente")]

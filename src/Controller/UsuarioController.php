@@ -82,7 +82,7 @@ class UsuarioController extends AbstractController
 
     }
 
-    #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['POST'])]
+    #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Usuario')]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarUsuarioDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario borrado correctamente")]
