@@ -298,4 +298,28 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
     }
+
+    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
+    #[OA\Response(response: 200,description: "Like restado correctamente")]
+    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $likesSumado = $publicacion->getLikes()-1 ;
+
+        $publicacionRepository->sumarLike($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
+    }
+
 }

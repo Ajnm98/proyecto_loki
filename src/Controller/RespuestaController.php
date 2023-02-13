@@ -160,7 +160,7 @@ class RespuestaController extends AbstractController
     }
 
 
-    #[Route('/api/respuesta/like', name: 'publicacionLike', methods: ['POST'])]
+    #[Route('/api/respuesta/like', name: 'respuestaLike', methods: ['POST'])]
     #[OA\Tag(name: 'Respuesta')]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
     #[OA\Response(response: 200,description: "Like sumado correctamente")]
@@ -210,6 +210,33 @@ class RespuestaController extends AbstractController
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
+    }
+
+
+    #[Route('/api/respuesta/dislike', name: 'respuestaDislike', methods: ['POST'])]
+    #[OA\Tag(name: 'Respuesta')]
+    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
+    #[OA\Response(response: 200,description: "Like restado correctamente")]
+    public function restarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $respuestaRepository->findOneBy($parametrosBusqueda);
+
+
+        $likesSumado = $publicacion->getLikes()-1 ;
+
+        $respuestaRepository->sumarLikeRespuesta($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
+
+
     }
 
 
