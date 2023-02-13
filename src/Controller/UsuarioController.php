@@ -23,8 +23,7 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use ReallySimpleJWT\Token;
 use JMS\Serializer\Annotation\MaxDepth;
 use Nelmio\ApiDocBundle\Annotation\Model;
-use Nelmio\ApiDocBundle\Annotation\Security;
-use ReallySimpleJWT\Token;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -215,13 +214,15 @@ class UsuarioController extends AbstractController
         ]);
     }
 
-    #[Route('/usuario/mi-usuario', name: 'app_mi_usuario', methods: ['GET'])]
+    #[Route('/api/usuario/mi-usuario', name: 'app_mi_usuario', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
+    #[Security(name: "apikey")]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
     public function miUsuario(UsuarioRepository $usuarioRepository,
                                   Request $request,Utilidades $utils): JsonResponse
     {
 
-        if ($utils->comprobarPermisos($request,0)) {
+        if ($utils->comprobarPermisos($request,1)) {
             $apikey = $request->headers->get("apikey");
             $id_usuario = Token::getPayload($apikey)["user_id"];
             $usuario = $usuarioRepository->findOneBy(array("id"=>$id_usuario));
@@ -236,8 +237,6 @@ class UsuarioController extends AbstractController
                 'message' => "No tiene permiso",
             ]);
         }
-
-
 
     }
 
