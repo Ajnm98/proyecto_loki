@@ -8,11 +8,18 @@ use App\Repository\ApiKeyRepository;
 use App\Repository\UsuarioRepository;
 use DateTime;
 use ReallySimpleJWT\Token;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactory;
+use Doctrine\Persistence\ManagerRegistry;
 
 
 class Utilidades
 {
+    private ManagerRegistry $doctrine;
+    public function __construct(ManagerRegistry $managerRegistry)
+    {
+        $this-> doctrine = $managerRegistry;
+    }
     public function  hashPassword($password):string
     {
 
@@ -81,10 +88,20 @@ class Utilidades
         $rol_name= Token::getPayload($token)["user_rol"];
         $usuario= $usuarioRepository->findOneBy(array("id" => $id_usuario));
 
-        return $apiKey == null
-            or $permisoRequerido == $rol_name
-            or $apiKey->getUsuario()->getId() == $id_usuario
-            or $apiKey->getFechaExpiracion() <= $fechaActual
-            or Token::validate($token, $usuario->getPassword());
+        return $apiKey != null
+            and $permisoRequerido == $rol_name
+            and $apiKey->getUsuario()->getId() == $id_usuario
+            and $apiKey->getFechaExpiracion() >= $fechaActual
+            and Token::validate($token, $usuario->getLogin()->getPassword());
+    }
+
+    public function comprobarPermisos(Request $request, $permiso){
+        $em = $this-> doctrine->getManager();
+        $userRepository = $em->getRepository(Usuario::class);
+        $apikeyRepository = $em->getRepository(ApiKey::class);
+        $token = $request->headers->get("apikey");
+
+        return $token != null and $this->esApiKeyValida($token, $permiso, $apikeyRepository, $userRepository);
+
     }
 }
