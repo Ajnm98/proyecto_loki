@@ -16,8 +16,11 @@ use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
+use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,23 +41,28 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
-    public function listarpublicacion(PublicacionRepository $publicacionRepository,
+    #[OA\Response(response: 401,description: "Unauthorized")]
+    public function listarpublicacion(PublicacionRepository $publicacionRepository,Utilidades $utils, Request $request,
                                       DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        $listPublicacion = $publicacionRepository->findAll();
+        if($utils->comprobarPermisos($request, 0)) {
+            $listPublicacion = $publicacionRepository->findAll();
 
-        foreach($listPublicacion as $user){
-            $usuarioDto = $converters->publicacionToDto($user);
-            $json = $jsonResponseConverter->toJson($usuarioDto,null);
-            $listJson[] = json_decode($json);
-        }
+            foreach ($listPublicacion as $user) {
+                $usuarioDto = $converters->publicacionToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-        ]);
-
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+            ]);
+        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
 
     #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
@@ -87,88 +95,186 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicaciones/usuario/amigo',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
-    public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, PublicacionRepository $publicacionRepository)//: JsonResponse
+    #[OA\Response(response: 400,description: "No puedes ver las publicaciones de los amigos de otro usuario")]
+    #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
+    public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, Utilidades $utils,
+                                                   PublicacionRepository $publicacionRepository)//: JsonResponse
     {
 
 //        $json = json_decode($request->getContent(), true);
+
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];;
+        $id = $request->query->get("usuario_id");
         $array = array();
 
-        $id = $request->query->get("usuario_id");
+        if($utils->comprobarPermisos($request, 0)) {
 
-        $parametrosBusqueda = array(
-            'usuario_id' => $id
-        );
-
-        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
-
-        foreach ($listAmigos as $amigo){
-
-
-            $valoramigo = $amigo->getAmigoId();
-
-            $parametrosBusqueda2 = array(
-                'usuario_id' => $valoramigo
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
             );
 
-            array_push($array, $publicacionRepository->findBy($parametrosBusqueda2,[]));
+            $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+            foreach ($listAmigos as $amigo) {
+
+
+                $valoramigo = $amigo->getAmigoId();
+
+                $parametrosBusqueda2 = array(
+                    'usuario_id' => $valoramigo
+                );
+
+                array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
+            }
+
+
+            return $this->json($array, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+
+            ]);
         }
+        elseif($utils->comprobarPermisos($request, 1)){
+            if($idu!=$id){
+                return new JsonResponse("{ mensaje: No puedes ver las publicaciones de los amigos de otro usuario}", 400, [], true);
+            }
+            else{
+                $parametrosBusqueda = array(
+                    'usuario_id' => $id
+                );
+
+                $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+                foreach ($listAmigos as $amigo) {
 
 
-        return $this->json($array, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+                    $valoramigo = $amigo->getAmigoId();
 
-        ]);
+                    $parametrosBusqueda2 = array(
+                        'usuario_id' => $valoramigo
+                    );
+
+                    array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
+                }
+
+
+                return $this->json($array, 200, [], [
+                    AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                    ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                        return $obj->getId();
+                    },
+
+                ]);
+            }
+    }
+        else{
+            return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
+        }
     }
 
 
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
     #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarPublicacionDTO::class)))]
     #[OA\Response(response: 200,description: "Publicacion borrada correctamente")]
-    public function delete(Request $request,PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository): JsonResponse
+    #[OA\Response(response: 300,description: "No se pudo borrar correctamente")]
+    #[OA\Response(response: 400,description: "No puedes borrar publicaciones de otro usuario")]
+    public function delete(Request $request,PublicacionRepository $publicacionRepository,
+                           Utilidades $utils,RespuestaRepository $respuestaRepository): JsonResponse
     {
 
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
-
         $id = $json['id'];
-        $respuestaRepository->borrarTodasRespuestasPorPublicacion($id);
-        $publicacionRepository->borrarPublicacion($id);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
 
-        return new JsonResponse("{ mensaje: Publicacion borrada correctamente }", 200, [], true);
+        if($utils->comprobarPermisos($request, 0)) {
+            $respuestaRepository->borrarTodasRespuestasPorPublicacion($id);
+            $publicacionRepository->borrarPublicacion($id);
+            return new JsonResponse("{ mensaje: Publicacion borrada correctamente }", 200, [], true);
+        }
+        elseif($utils->comprobarPermisos($request, 1)) {
 
-    }
+                if ($id != $idu) {
+                    return new JsonResponse("{ mensaje: No puedes borrar publicaciones de otro usuario}", 400, [], true);
+                } else {
+                    $respuestaRepository->borrarTodasRespuestasPorPublicacion($id);
+                    $publicacionRepository->borrarPublicacion($id);
+                    return new JsonResponse("{ mensaje: Publicacion borrada correctamente }", 200, [], true);
+                }
+            }
+        else{
+                return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
+            }
+        }
 
 #[Route('/api/publicacion/save', name: 'publicacion_crear', methods: ['POST'])]
 #[OA\Tag(name: 'Publicacion')]
+#[Security(name: "apikey")]
 #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearPublicacionDTO::class)))]
 #[OA\Response(response: 200,description: "Publicacion creada correctamente")]
-    public function save(UsuarioRepository $usuarioRepository,Request $request): JsonResponse
+#[OA\Response(response: 300,description: "No se pudo crear correctamente")]
+#[OA\Response(response: 400,description: "No puedes crear publicaciones de otro usuario")]
+    public function save(UsuarioRepository $usuarioRepository,Request $request,
+                         Utilidades $utils): JsonResponse
     {
 
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $publicacionNuevo = new Publicacion();
         $usuarioid = $json['usuarioId'];
-        $usuario = $usuarioRepository->findOneBy(array("id"=>$usuarioid));
-        $fecha = date('Y-m-d H:i:s');
 
-        $publicacionNuevo->setUsuarioId($usuario);
-        $publicacionNuevo->setTexto($json['texto']);
-        $publicacionNuevo->setFecha(date('Y-m-d H:i:s'));
-        $publicacionNuevo->setFoto($json['foto']);
+        if($utils->comprobarPermisos($request, 0)) {
+            $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
+            $fecha = date('Y-m-d H:i:s');
 
-        //GUARDAR
-        $em = $this-> doctrine->getManager();
-        $em->persist($publicacionNuevo);
-        $em-> flush();
+            $publicacionNuevo->setUsuarioId($usuario);
+            $publicacionNuevo->setTexto($json['texto']);
+            $publicacionNuevo->setFecha(date('Y-m-d H:i:s'));
+            $publicacionNuevo->setFoto($json['foto']);
 
-        return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
+            //GUARDAR
+            $em = $this->doctrine->getManager();
+            $em->persist($publicacionNuevo);
+            $em->flush();
+
+            return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
+        }
+        elseif($utils->comprobarPermisos($request, 1)) {
+            if ($usuarioid != $idu) {
+                return new JsonResponse("{ mensaje: No puedes crear publicaciones de otro usuario}", 400, [], true);
+            } else {
+                $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
+                $fecha = date('Y-m-d H:i:s');
+
+                $publicacionNuevo->setUsuarioId($usuario);
+                $publicacionNuevo->setTexto($json['texto']);
+                $publicacionNuevo->setFecha(date('Y-m-d H:i:s'));
+                $publicacionNuevo->setFoto($json['foto']);
+
+                //GUARDAR
+                $em = $this->doctrine->getManager();
+                $em->persist($publicacionNuevo);
+                $em->flush();
+
+                return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
+            }
+        }    else{
+            return new JsonResponse("{ mensaje: No se pudo crear correctamente }", 300, [], true);
+        }
+
     }
     #[Route('/api/publicacion/like', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
@@ -192,8 +298,4 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
     }
-
-
-
-
 }

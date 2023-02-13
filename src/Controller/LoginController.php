@@ -14,6 +14,7 @@ use App\Utils\JsonResponseConverter;
 use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,22 +32,29 @@ class LoginController extends AbstractController
     }
     #[Route('/api/login/list', name: 'login', methods: ['GET'])]
     #[OA\Tag(name: 'Login')]
+    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: LoginDTO::class))))]
-    public function listar(LoginRepository $loginRepository,
+    #[OA\Response(response: 401,description: "Unauthorized")]
+    public function listar(LoginRepository $loginRepository,Utilidades $utils, Request $request,
                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        $listLogin = $loginRepository->findAll();
 
-        foreach($listLogin as $user){
-            $usuarioDto = $converters-> loginToDto($user);
-            $json = $jsonResponseConverter->toJson($usuarioDto,null);
-            $listJson[] = json_decode($json);
-        }
+        if($utils->comprobarPermisos($request, 0)) {
+            $listLogin = $loginRepository->findAll();
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-        ]);
+            foreach ($listLogin as $user) {
+                $usuarioDto = $converters->loginToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+            ]);
+        } else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
 
     #[Route('/api/login', name: 'app_login', methods: ["POST"])]

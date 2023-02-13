@@ -191,7 +191,7 @@ class BloqueadosController extends AbstractController
         $apikey = $request->headers->get('apikey');
         $id_usuario = $json['usuarioId'];
         $id_desbloqueado =$json['bloqueadoId'];
-        $idu = Token::getPayload($apikey)["user_id"];;
+        $idu = Token::getPayload($apikey)["user_id"];
 
         if($utils->comprobarPermisos($request, 0)) {
             $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);

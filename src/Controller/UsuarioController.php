@@ -21,6 +21,8 @@ use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use JMS\Serializer\Annotation\MaxDepth;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -42,24 +44,31 @@ class UsuarioController extends AbstractController
     }
     #[Route('/api/usuario/list', name: 'usuarioListar', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
+    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-    public function listar(UsuarioRepository $usuarioRepository,
+    #[OA\Response(response: 401,description: "Unauthorized")]
+    public function listar(UsuarioRepository $usuarioRepository,Utilidades $utils, Request $request,
                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
 {
+    if($utils->comprobarPermisos($request, 0)) {
+        $listLogin = $usuarioRepository->findAll();
 
-    $listLogin = $usuarioRepository->findAll();
+        foreach ($listLogin as $user) {
+            $usuarioDto = $converters->usuarioToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto, null);
+            $listJson[] = json_decode($json);
+        }
 
-    foreach($listLogin as $user){
-        $usuarioDto = $converters->usuarioToDto($user);
-        $json = $jsonResponseConverter->toJson($usuarioDto,null);
-        $listJson[] = json_decode($json);
-    }
-
-    return $this->json($listJson, 200, [], [
-        AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-        ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-    ]);
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                return $obj->getId();
+            },
+        ]);
+    }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
 }
+
+
     #[Route('/api/usuario/buscar', name: 'appUsuarioBuscarNombre', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
     #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
@@ -84,29 +93,60 @@ class UsuarioController extends AbstractController
 
     #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Usuario')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarUsuarioDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario borrado correctamente")]
-    public function delete(Request $request,ChatRepository $chatRepository,
+    #[OA\Response(response: 300,description: "No se pudo borrar correctamente")]
+    #[OA\Response(response: 400,description: "No puedes borrar a otro usuario")]
+    public function delete(Request $request,ChatRepository $chatRepository,Utilidades $utils,
                            PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
                            LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
                             AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository): JsonResponse
     {
 
         //Obtener Json del body
-        $json  = json_decode($request->getContent(), true);
-
+        $json = json_decode($request->getContent(), true);
         $id = $json['id'];
-        $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
-        $amigosRepository->borrarAmigosPorUsuario($id);
-        $chatRepository->borrarChatPorUsuario($id);
-        $respuestaRepository->borrarRespuestaPorUsuario($id);
-        $publicacionRepository->borrarPublicacionPorUsuario($id);
-        $usuarioRepository->borrarUsuario($id);
-        $loginRepository->borrarLogin($id);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
+
+        if ($utils->comprobarPermisos($request, 0)) {
+            $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
+            $amigosRepository->borrarAmigosPorUsuario($id);
+            $chatRepository->borrarChatPorUsuario($id);
+            $respuestaRepository->borrarRespuestaPorUsuario($id);
+            $publicacionRepository->borrarPublicacionPorUsuario($id);
+            $usuarioRepository->borrarUsuario($id);
+            $loginRepository->borrarLogin($id);
 
 
-        return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
+            return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
+        }
+        elseif($utils->comprobarPermisos($request, 1)) {
+
+            if ($id != $idu) {
+                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
+            } else {
+                $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
+                $amigosRepository->borrarAmigosPorUsuario($id);
+                $chatRepository->borrarChatPorUsuario($id);
+                $respuestaRepository->borrarRespuestaPorUsuario($id);
+                $publicacionRepository->borrarPublicacionPorUsuario($id);
+                $usuarioRepository->borrarUsuario($id);
+                $loginRepository->borrarLogin($id);
+
+
+                return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
+            }
+        }
+        else{
+            return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
+        }
     }
+
+
+
+
     #[Route('/api/usuario/registrar', name: 'usuarioSaveCorto', methods: ['POST'])]
     #[OA\Tag(name: 'Usuario')]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:CrearUsuarioDTO::class)))]
@@ -174,6 +214,7 @@ class UsuarioController extends AbstractController
     }
 
     #[Route('/usuario/mi-usuario', name: 'app_mi_usuario', methods: ['GET'])]
+    #[OA\Tag(name: 'Usuario')]
     public function miUsuario(UsuarioRepository $usuarioRepository,
                                   Request $request,Utilidades $utils): JsonResponse
     {
