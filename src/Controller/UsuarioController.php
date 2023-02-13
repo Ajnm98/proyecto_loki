@@ -14,6 +14,8 @@ use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -146,17 +148,11 @@ public function listar(UsuarioRepository $usuarioRepository): JsonResponse
     public function miUsuario(UsuarioRepository $usuarioRepository,
                                   Request $request,Utilidades $utils): JsonResponse
     {
-        $em = $this-> doctrine->getManager();
-        $userRepository = $em->getRepository(Usuario::class);
-        $apikeyRepository = $em->getRepository(ApiKey::class);
 
-        $apikey = $request->query->get("api_key");
-        $compruebaAcceso = $utils->esApiKeyValida($apikey, 1, $apikeyRepository, $userRepository);
-
-
-        if ($compruebaAcceso) {
-
-            $usuario = $usuarioRepository->findAll();
+        if ($utils->comprobarPermisos($request,0)) {
+            $apikey = $request->headers->get("apikey");
+            $id_usuario = Token::getPayload($apikey)["user_id"];
+            $usuario = $usuarioRepository->findOneBy(array("id"=>$id_usuario));
 
             return $this->json($usuario, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
