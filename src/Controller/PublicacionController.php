@@ -47,7 +47,7 @@ class PublicacionController extends AbstractController
     public function listarpublicacion(PublicacionRepository $publicacionRepository,Utilidades $utils, Request $request,
                                       DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        if($utils->comprobarPermisos($request, 0)) {
+        //if($utils->comprobarPermisos($request, 0)) {
             $listPublicacion = $publicacionRepository->findAll();
 
             foreach ($listPublicacion as $user) {
@@ -62,7 +62,7 @@ class PublicacionController extends AbstractController
                     return $obj->getId();
                 },
             ]);
-        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
+        //}else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
 
     #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
@@ -237,7 +237,7 @@ class PublicacionController extends AbstractController
         $usuarioid = $json['usuarioId'];
 
         if($utils->comprobarPermisos($request, 0)) {
-            $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
+            $usuario = $usuarioRepository->findOneBy(array("id" => $idu));
             $fecha = date('Y-m-d H:i:s');
 
             $publicacionNuevo->setUsuarioId($usuario);
