@@ -47,7 +47,7 @@ class PublicacionController extends AbstractController
     public function listarpublicacion(PublicacionRepository $publicacionRepository,Utilidades $utils, Request $request,
                                       DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        //if($utils->comprobarPermisos($request, 0)) {
+        if($utils->comprobarPermisos($request, 0)) {
             $listPublicacion = $publicacionRepository->findAll();
 
             foreach ($listPublicacion as $user) {
@@ -62,7 +62,7 @@ class PublicacionController extends AbstractController
                     return $obj->getId();
                 },
             ]);
-        //}else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
+        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
 
     #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
@@ -237,7 +237,7 @@ class PublicacionController extends AbstractController
         $usuarioid = $json['usuarioId'];
 
         if($utils->comprobarPermisos($request, 0)) {
-            $usuario = $usuarioRepository->findOneBy(array("id" => $idu));
+            $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
             $fecha = date('Y-m-d H:i:s');
 
             $publicacionNuevo->setUsuarioId($usuario);
@@ -253,10 +253,10 @@ class PublicacionController extends AbstractController
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
         }
         elseif($utils->comprobarPermisos($request, 1)) {
-            if ($usuarioid != $idu) {
-                return new JsonResponse("{ mensaje: No puedes crear publicaciones de otro usuario}", 400, [], true);
-            } else {
-                $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
+//            if ($usuarioid != $idu) {
+//                return new JsonResponse("{ mensaje: No puedes crear publicaciones de otro usuario}", 400, [], true);
+//            } else {
+                $usuario = $usuarioRepository->findOneBy(array("id" => $idu));
                 $fecha = date('Y-m-d H:i:s');
 
                 $publicacionNuevo->setUsuarioId($usuario);
@@ -270,7 +270,7 @@ class PublicacionController extends AbstractController
                 $em->flush();
 
                 return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
-            }
+//            }
         }    else{
             return new JsonResponse("{ mensaje: No se pudo crear correctamente }", 300, [], true);
         }
@@ -298,28 +298,4 @@ class PublicacionController extends AbstractController
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
     }
-
-    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
-    #[OA\Tag(name: 'Publicacion')]
-    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
-    #[OA\Response(response: 200,description: "Like restado correctamente")]
-    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
-
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
-
-        $likesSumado = $publicacion->getLikes()-1 ;
-
-        $publicacionRepository->sumarLike($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
-    }
-
 }
