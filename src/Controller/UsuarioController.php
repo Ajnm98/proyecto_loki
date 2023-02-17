@@ -222,7 +222,7 @@ class UsuarioController extends AbstractController
                                   Request $request,Utilidades $utils): JsonResponse
     {
 
-        if ($utils->comprobarPermisos($request,1)) {
+//        if ($utils->comprobarPermisos($request,1)) {
             $apikey = $request->headers->get("apikey");
             $id_usuario = Token::getPayload($apikey)["user_id"];
             $usuario = $usuarioRepository->findOneBy(array("id"=>$id_usuario));
@@ -232,11 +232,11 @@ class UsuarioController extends AbstractController
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
 
-        } else {
-            return $this->json([
-                'message' => "No tiene permiso",
-            ]);
-        }
+//        } else {
+//            return $this->json([
+//                'message' => "No tiene permiso",
+//            ]);
+//        }
 
     }
 
