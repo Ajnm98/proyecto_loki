@@ -33,29 +33,29 @@ class RespuestaController extends AbstractController
     }
     #[Route('/api/respuesta/list', name: 'respuesta_listar', methods: ['GET'])]
     #[OA\Tag(name: 'Respuesta')]
-    #[Security(name: "apikey")]
+//    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: RespuestaDTO::class))))]
-    #[OA\Response(response: 401,description: "Unauthorized")]
+//    #[OA\Response(response: 401,description: "Unauthorized")]
     public function listar(RespuestaRepository $respuestaRepository,Utilidades $utils, Request $request,
                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        if($utils->comprobarPermisos($request, 0)) {
-            $listRespuesta = $respuestaRepository->findAll();
+//        if($utils->comprobarPermisos($request, 0)) {
+        $listRespuesta = $respuestaRepository->findAll();
 
-            foreach ($listRespuesta as $user) {
-                $usuarioDto = $converters->respuestaToDto($user);
-                $json = $jsonResponseConverter->toJson($usuarioDto, null);
-                $listJson[] = json_decode($json);
-            }
-
-            return $this->json($listJson, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
-            ]);
+        foreach ($listRespuesta as $user) {
+            $usuarioDto = $converters->respuestaToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto, null);
+            $listJson[] = json_decode($json);
         }
-        else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                return $obj->getId();
+            },
+        ]);
+//    }
+//        else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
 
     }
 

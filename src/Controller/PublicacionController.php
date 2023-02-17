@@ -20,6 +20,7 @@ use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
+use OpenApi\Util;
 use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -68,30 +69,64 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
-    public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository,
+    #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
+    public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository, Utilidades $utils,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
 
         $id = $request->query->get("usuario_id");
-        $parametrosBusqueda = array(
-            'usuario_id' => $id
-        );
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
 
-        $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
 
-        foreach($listPublicacion1 as $user){
-            $usuarioDto = $converters->publicacionToDto($user);
-            $json = $jsonResponseConverter->toJson($usuarioDto,null);
-            $listJson[] = json_decode($json);
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+            $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach ($listPublicacion1 as $user) {
+                $usuarioDto = $converters->publicacionToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+
+            ]);
         }
+        if($utils->comprobarPermisos($request, 1)) {
+            $parametrosBusqueda = array(
+                'usuario_id' => $idu
+            );
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
 
-        ]);
+            foreach ($listPublicacion1 as $user) {
+                $usuarioDto = $converters->publicacionToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                },
+
+            ]);
+        }
+        else{
+            return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
+        }
     }
 
     #[Route('/api/publicaciones/usuario/amigo',  methods: ['GET'])]
@@ -317,4 +352,29 @@ class PublicacionController extends AbstractController
 
         ]);
     }
+
+    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
+    #[OA\Response(response: 200,description: "Like restado correctamente")]
+    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $likesSumado = $publicacion->getLikes()-1 ;
+
+        $publicacionRepository->sumarLike($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
+    }
+
+
 }

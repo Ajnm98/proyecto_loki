@@ -144,34 +144,65 @@ class BloqueadosController extends AbstractController
 
     #[Route('/api/bloqueados/listUser', name: 'bloqueadosUsuario',methods: ['GET'])]
     #[OA\Tag(name:'Bloqueados')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
-    public function listarbloqueadosUsuario(Request $request,BloqueadosRepository $bloqueadosRepository,
+    #[OA\Response(response: 300,description: "No se pudo bloquear correctamente")]
+    public function listarbloqueadosUsuario(Request $request,BloqueadosRepository $bloqueadosRepository, Utilidades $utils,
                                             DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
 
 //        $json = json_decode($request->getContent(), true);
 
         $id = $request->query->get("id");
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
 
-        $parametrosBusqueda = array(
-            'usuario_id' => $id
-        );
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
 
-        $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
+            $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
 
-        foreach($listbloqueados as $user){
-            $usarioDto = $converters->BloqueadoToDto($user);
-            $usuario2 = $usarioDto->getBloqueadoId();
-            $json = $jsonResponseConverter->toJson($usuario2,null);
-            $listJson[] = json_decode($json);
+            foreach ($listbloqueados as $user) {
+                $usarioDto = $converters->BloqueadoToDto($user);
+                $usuario2 = $usarioDto->getBloqueadoId();
+                $json = $jsonResponseConverter->toJson($usuario2, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
         }
+        elseif($utils->comprobarPermisos($request, 1)) {
+            $parametrosBusqueda = array(
+                'usuario_id' => $idu
+            );
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
-        ]);
+            $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
 
+            foreach ($listbloqueados as $user) {
+                $usarioDto = $converters->BloqueadoToDto($user);
+                $usuario2 = $usarioDto->getBloqueadoId();
+                $json = $jsonResponseConverter->toJson($usuario2, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+        }
+        else{
+            return new JsonResponse("{ mensaje: No se pudo mostrar correctamente }", 300, [], true);
+        }
     }
 
 
@@ -197,7 +228,7 @@ class BloqueadosController extends AbstractController
             $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
             return new JsonResponse(" Usuario desbloqueado correctamente ", 200, [], true);
         }
-        elseif($utils->comprobarPermisos($request, 1)){{
+        elseif($utils->comprobarPermisos($request, 1)){
             if($id_usuario!=$idu){
                 return new JsonResponse("{ mensaje: No puedes desbloquear usuarios de otro usuario}", 400, [], true);
             }
@@ -205,64 +236,106 @@ class BloqueadosController extends AbstractController
                 $bloqueadosRepository->desbloquear($id_usuario, $id_desbloqueado);
                 return new JsonResponse(" Usuario desbloqueado correctamente ", 200, [], true);
             }
+        }
 
-        }
-        }
         else{
             return new JsonResponse("{ mensaje: No se pudo desbloquear correctamente }", 300, [], true);
         }
-
-
-
     }
 
     #[Route('/api/bloqueados/buscar',  methods: ['GET'])]
     #[OA\Tag(name:'Bloqueados')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuarioId", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Parameter(name: "usuarioBloqueado", description: "El nombre del usuario buscado bloqueado", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
-    #[OA\Response(response:100,description:"wrong operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
+    #[OA\Response(response: 100,description: "No existe usuario bloqueado")]
+    #[OA\Response(response: 300,description: "No es posible buscar")]
     public function buscarUsuarioBloqueado(Request $request, UsuarioRepository $usuarioRepository,
-                                           BloqueadosRepository $bloqueadosRepository,
+                                           BloqueadosRepository $bloqueadosRepository, Utilidades $utils,
                                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
 //        $json  = json_decode($request->getContent(), true);
 
         $id_usuario = $request->query->get("usuarioId");
-        $usuario_bloqueado = $request->query->get("usuarioBloqueado");;
+        $usuario_bloqueado = $request->query->get("usuarioBloqueado");
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
 
-        $parametrosBusqueda = array(
-            'usuario' => $usuario_bloqueado
-        );
 
-        $bloqueado = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+        if ($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario' => $usuario_bloqueado
+            );
 
-        if ($bloqueado != null) {
-            $bloqueado_id = $bloqueado->getId();
-        } else {
+            $bloqueado = $usuarioRepository->findOneBy($parametrosBusqueda, []);
 
-            return new JsonResponse("{ mensaje: No existe usuario bloqueado }", 100, [], true);
-        }
+            if ($bloqueado != null) {
+                $bloqueado_id = $bloqueado->getId();
+            } else {
 
-        $parametrosBusqueda2 = array(
-            'usuario_id' => $id_usuario,
-            'bloqueado_id'=> $bloqueado_id
-        );
+                return new JsonResponse("{ mensaje: No existe usuario bloqueado }", 100, [], true);
+            }
 
-        $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda2, []);
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $id_usuario,
+                'bloqueado_id' => $bloqueado_id
+            );
 
-        foreach($listbloqueados as $user){
-            $usuarioDto = $converters->BloqueadoToDto($user);
-            $usuario = $usuarioDto->getBloqueadoId();
-            $json = $jsonResponseConverter->toJson($usuario,null);
-            $listJson[] = json_decode($json);
-        }
+            $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda2, []);
+
+            foreach ($listbloqueados as $user) {
+                $usuarioDto = $converters->BloqueadoToDto($user);
+                $usuario = $usuarioDto->getBloqueadoId();
+                $json = $jsonResponseConverter->toJson($usuario, null);
+                $listJson[] = json_decode($json);
+            }
 
             return $this->json($listJson, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
             ]);
+        }
+        elseif($utils->comprobarPermisos($request, 1)){
+            $parametrosBusqueda = array(
+                'usuario' => $usuario_bloqueado
+            );
+
+            $bloqueado = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+
+            if ($bloqueado != null) {
+                $bloqueado_id = $bloqueado->getId();
+            } else {
+
+                return new JsonResponse("{ mensaje: No existe usuario bloqueado }", 100, [], true);
+            }
+
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $idu,
+                'bloqueado_id' => $bloqueado_id
+            );
+
+            $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda2, []);
+
+            foreach ($listbloqueados as $user) {
+                $usuarioDto = $converters->BloqueadoToDto($user);
+                $usuario = $usuarioDto->getBloqueadoId();
+                $json = $jsonResponseConverter->toJson($usuario, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+        }
+        else{return new JsonResponse("{ mensaje: No se pudo desbloquear correctamente }", 300, [], true);}
+        
     }
-
-
+    
+    
     }
