@@ -34,9 +34,24 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    #[ORM\JoinColumn(name: 'tag',nullable: false)]
-    private ?string $tag = null;
+    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: PublicacionTags::class)]
+    private Collection $publicacion_id;
+
+    /**
+     * @return Collection
+     */
+    public function getPublicacionId(): Collection
+    {
+        return $this->publicacion_id;
+    }
+
+    /**
+     * @param Collection $publicacion_id
+     */
+    public function setPublicacionId(Collection $publicacion_id): void
+    {
+        $this->publicacion_id = $publicacion_id;
+    }
 
     public function getId(): ?int
     {

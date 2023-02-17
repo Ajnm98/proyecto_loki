@@ -25,6 +25,25 @@ class Tags
     #[ORM\Column(length: 500,nullable: true)]
     private ?string $fecha = null;
 
+    #[ORM\OneToMany(mappedBy: 'tags_id', targetEntity: PublicacionTags::class)]
+    private Collection $tags_id;
+
+    /**
+     * @return Collection
+     */
+    public function getTagsId(): Collection
+    {
+        return $this->tags_id;
+    }
+
+    /**
+     * @param Collection $tags_id
+     */
+    public function setTagsId(Collection $tags_id): void
+    {
+        $this->tags_id = $tags_id;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

@@ -261,7 +261,7 @@ class PublicacionController extends AbstractController
 
                 return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
 //            }
-        }    else{
+            }else{
             return new JsonResponse("{ mensaje: No se pudo crear correctamente }", 300, [], true);
         }
 
