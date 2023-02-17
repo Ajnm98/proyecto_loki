@@ -22,7 +22,6 @@ use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use ReallySimpleJWT\Token;
-use JMS\Serializer\Annotation\MaxDepth;
 use Nelmio\ApiDocBundle\Annotation\Model;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,17 +32,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use OpenApi\Attributes as OA;
 
-
-
 class UsuarioController extends AbstractController
 {
 
     private ManagerRegistry $doctrine;
-
     public function __construct(ManagerRegistry $managerRegistry)
     {
         $this-> doctrine = $managerRegistry;
     }
+
     #[Route('/api/usuario/list', name: 'usuarioListar', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
