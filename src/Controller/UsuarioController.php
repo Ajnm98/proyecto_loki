@@ -93,7 +93,7 @@ class UsuarioController extends AbstractController
 
     }
 
-    #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['DELETE'])]
+    #[Route('/api/usuario/delete', name: 'respuestaDelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarUsuarioDTO::class)))]
@@ -147,9 +147,6 @@ class UsuarioController extends AbstractController
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
     }
-
-
-
 
     #[Route('/api/usuario/registrar', name: 'usuarioSaveCorto', methods: ['POST'])]
     #[OA\Tag(name: 'Usuario')]
@@ -242,6 +239,7 @@ class UsuarioController extends AbstractController
 //        }
 
     }
+
 
 
 }
