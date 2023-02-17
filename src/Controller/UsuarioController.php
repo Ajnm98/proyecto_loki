@@ -10,6 +10,7 @@ use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
+use App\Repository\ApiKeyRepository;
 use App\Repository\BloqueadosRepository;
 use App\Repository\ChatRepository;
 use App\Repository\LoginRepository;
@@ -92,7 +93,7 @@ class UsuarioController extends AbstractController
 
     }
 
-    #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['DELETE'])]
+    #[Route('/api/usuario/delete', name: 'respuestaDelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarUsuarioDTO::class)))]
@@ -102,7 +103,8 @@ class UsuarioController extends AbstractController
     public function delete(Request $request,ChatRepository $chatRepository,Utilidades $utils,
                            PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
                            LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
-                            AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository): JsonResponse
+                            AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository,
+                            ApiKeyRepository $apiKeyRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -117,6 +119,7 @@ class UsuarioController extends AbstractController
             $chatRepository->borrarChatPorUsuario($id);
             $respuestaRepository->borrarRespuestaPorUsuario($id);
             $publicacionRepository->borrarPublicacionPorUsuario($id);
+            $apiKeyRepository->borrarApiKeyUsuario($id);
             $usuarioRepository->borrarUsuario($id);
             $loginRepository->borrarLogin($id);
 
@@ -125,28 +128,25 @@ class UsuarioController extends AbstractController
         }
         elseif($utils->comprobarPermisos($request, 1)) {
 
-            if ($id != $idu) {
-                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
-            } else {
-                $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
-                $amigosRepository->borrarAmigosPorUsuario($id);
-                $chatRepository->borrarChatPorUsuario($id);
-                $respuestaRepository->borrarRespuestaPorUsuario($id);
-                $publicacionRepository->borrarPublicacionPorUsuario($id);
-                $usuarioRepository->borrarUsuario($id);
-                $loginRepository->borrarLogin($id);
-
+//            if ($id != $idu) {
+//                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
+//            } else {
+                $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
+                $amigosRepository->borrarAmigosPorUsuario($idu);
+                $chatRepository->borrarChatPorUsuario($idu);
+                $respuestaRepository->borrarRespuestaPorUsuario($idu);
+                $publicacionRepository->borrarPublicacionPorUsuario($idu);
+                $apiKeyRepository->borrarApiKeyUsuario($idu);
+                $usuarioRepository->borrarUsuario($idu);
+                $loginRepository->borrarLogin($idu);
 
                 return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
             }
-        }
+//        }
         else{
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
     }
-
-
-
 
     #[Route('/api/usuario/registrar', name: 'usuarioSaveCorto', methods: ['POST'])]
     #[OA\Tag(name: 'Usuario')]
@@ -239,6 +239,7 @@ class UsuarioController extends AbstractController
 //        }
 
     }
+
 
 
 }
