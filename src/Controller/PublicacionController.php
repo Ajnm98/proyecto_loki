@@ -29,6 +29,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Validator\Constraints\Date;
 use OpenApi\Attributes as OA;
+use function PHPUnit\Framework\isEmpty;
 
 class PublicacionController extends AbstractController
 {
@@ -41,13 +42,13 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
-    #[Security(name: "apikey")]
+//    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
-    #[OA\Response(response: 401,description: "Unauthorized")]
+//    #[OA\Response(response: 401,description: "Unauthorized")]
     public function listarpublicacion(PublicacionRepository $publicacionRepository,Utilidades $utils, Request $request,
                                       DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        if($utils->comprobarPermisos($request, 0)) {
+//        if($utils->comprobarPermisos($request, 0)) {
             $listPublicacion = $publicacionRepository->findAll();
 
             foreach ($listPublicacion as $user) {
@@ -62,7 +63,7 @@ class PublicacionController extends AbstractController
                     return $obj->getId();
                 },
             ]);
-        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
+//        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
 
     #[Route('/api/publicaciones/usuario',  methods: ['GET'])]
@@ -120,24 +121,18 @@ class PublicacionController extends AbstractController
             $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
 
             foreach ($listAmigos as $amigo) {
-
-
                 $valoramigo = $amigo->getAmigoId();
-
                 $parametrosBusqueda2 = array(
                     'usuario_id' => $valoramigo
                 );
-
                 array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
             }
-
 
             return $this->json($array, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                     return $obj->getId();
                 },
-
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
@@ -152,17 +147,12 @@ class PublicacionController extends AbstractController
                 $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
 
                 foreach ($listAmigos as $amigo) {
-
-
                     $valoramigo = $amigo->getAmigoId();
-
                     $parametrosBusqueda2 = array(
                         'usuario_id' => $valoramigo
                     );
-
                     array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
                 }
-
 
                 return $this->json($array, 200, [], [
                     AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
@@ -297,5 +287,34 @@ class PublicacionController extends AbstractController
         $publicacionRepository->sumarLike($id, $likesSumado);
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+    }
+    #[Route('/api/publicaciones/mis-publicaciones',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
+    public function listarMisPublicaciones(Request $request, PublicacionRepository $publicacionRepository,
+                                             DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    {
+        $apikey = $request->headers->get('apikey');
+        $id = Token::getPayload($apikey)["user_id"];
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+        if(isEmpty($listPublicacion1)){
+            return new JsonResponse("No tienes Publicaciones",200,[],true);
+        }
+        foreach($listPublicacion1 as $user){
+            $usuarioDto = $converters->publicacionToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
+        ]);
     }
 }
