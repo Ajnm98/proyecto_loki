@@ -13,7 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method PublicacionTags[]    findAll()
  * @method PublicacionTags[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PublicacionTagsRepository
+class PublicacionTagsRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

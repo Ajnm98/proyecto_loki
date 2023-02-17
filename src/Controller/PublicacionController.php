@@ -8,6 +8,8 @@ use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
 use App\Dto\SumarRestarLikeDTO;
 use App\Entity\Publicacion;
+use App\Entity\PublicacionTags;
+use App\Entity\Tags;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
@@ -162,7 +164,7 @@ class PublicacionController extends AbstractController
 
                 ]);
             }
-    }
+        }
         else{
             return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
         }
@@ -224,7 +226,10 @@ class PublicacionController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $publicacionNuevo = new Publicacion();
+        $tagsNuevo = new Tags();
+        $publicacionTagsNuevo = new PublicacionTags();
         $usuarioid = $json['usuarioId'];
+        $tags = $json['tags'];
 
         if($utils->comprobarPermisos($request, 0)) {
             $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
@@ -239,6 +244,10 @@ class PublicacionController extends AbstractController
             $em = $this->doctrine->getManager();
             $em->persist($publicacionNuevo);
             $em->flush();
+
+            //obtenemos esta publicacion y le adjuntamos los tags
+
+
 
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
         }
@@ -258,6 +267,24 @@ class PublicacionController extends AbstractController
                 $em = $this->doctrine->getManager();
                 $em->persist($publicacionNuevo);
                 $em->flush();
+
+                //creamos el tag
+                $tagsNuevo->setNombre($tags);
+                $tagsNuevo->setContador(1);
+                $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
+
+                $em = $this->doctrine->getManager();
+                $em->persist($tagsNuevo);
+                $em->flush();
+
+                //adjuntamos a la tabla intermedia
+
+                $publicacionTagsNuevo->setPublicacion($publicacionNuevo);
+                $publicacionTagsNuevo->setTags($tagsNuevo);
+                $em = $this->doctrine->getManager();
+                $em->persist($publicacionTagsNuevo);
+                $em->flush();
+
 
                 return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
 //            }

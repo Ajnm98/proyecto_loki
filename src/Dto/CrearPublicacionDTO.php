@@ -7,6 +7,23 @@ class CrearPublicacionDTO
  private int $usuario_id;
  private string $texto;
  private string $foto;
+ private string $tags;
+
+    /**
+     * @return string
+     */
+    public function getTags(): string
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param string $tags
+     */
+    public function setTags(string $tags): void
+    {
+        $this->tags = $tags;
+    }
     public function __construct()
     {
     }
