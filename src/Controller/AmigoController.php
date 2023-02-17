@@ -13,6 +13,7 @@ use App\Utils\JsonResponseConverter;
 use App\Utils\Prueba;
 use App\Utils\Utilidades;
 use Exception;
+use MongoDB\BSON\Undefined;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
 use ReallySimpleJWT\Token;
@@ -28,6 +29,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Serializer;
 use App\Dto\AmigosDTO;
+use function PHPUnit\Framework\isEmpty;
 
 class AmigoController extends AbstractController
 {
@@ -83,7 +85,7 @@ class AmigoController extends AbstractController
         $id = $json['usuarioId'];
         $amigo = $json['amigoId'];
         $apikey = $request->headers->get('apikey');
-        $idu = Token::getPayload($apikey)["user_id"];;
+        $idu = Token::getPayload($apikey)["user_id"];
 
         if($utils->comprobarPermisos($request, 0)) {
 
@@ -213,33 +215,37 @@ class AmigoController extends AbstractController
 
     #[Route('/api/amigos/mis-amigos', name: 'mis-amigos', methods: ['GET'])]
     #[OA\Tag(name: 'Amigos')]
-    #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-    public function buscarMisAmigos(AmigosRepository $amigosRepository,
-                                    Request $request,  DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    public function buscarMisAmigos(AmigosRepository $amigosRepository, Request $request,  DtoConverters $converters,
+                                    JsonResponseConverter $jsonResponseConverter, Utilidades $utils): JsonResponse
     {
-        $id = $request->query->get("usuario_id");
 
-        $parametrosBusqueda = array(
-            'usuario_id' => $id
-        );
+            $apikey = $request->headers->get('apikey');
+            $id = Token::getPayload($apikey)["user_id"];
 
-        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
 
-        foreach($listAmigos as $user){
-            $usarioDto = $converters-> amigosToDto($user);
-            $usuario2 = $usarioDto->getAmigoId();
-            $json = $jsonResponseConverter->toJson($usuario2,null);
-            $listJson[] = json_decode($json);
+            $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+            if(isEmpty($listAmigos)){
+                return new JsonResponse("Sin amigos enlazados",200,[],true);
+            }
+
+            foreach($listAmigos as $user){
+                $usarioDto = $converters-> amigosToDto($user);
+                $usuario2 = $usarioDto->getAmigoId();
+                $json = $jsonResponseConverter->toJson($usuario2,null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
+            ]);
+
         }
-
-//        $listJson = $utilidades->toJson($listUsuarios);
-
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
-        ]);
-    }
 
     #[Route('/api/amigos/buscarAmigo', name: 'amigo_buscar_id', methods: ['GET'])]
     #[OA\Tag(name: 'Amigos')]
@@ -285,10 +291,6 @@ class AmigoController extends AbstractController
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
             ]);
-
-
-
-
     }
 
 
