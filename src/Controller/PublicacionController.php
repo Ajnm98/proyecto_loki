@@ -7,10 +7,14 @@ use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
 use App\Dto\SumarRestarLikeDTO;
+use App\Entity\Likes;
+use App\Entity\LikesUsuario;
 use App\Entity\Publicacion;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
+use App\Repository\LikesRepository;
+use App\Repository\LikesUsuarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
 use App\Repository\UsuarioRepository;
@@ -186,10 +190,10 @@ class PublicacionController extends AbstractController
                     $parametrosBusqueda2 = array(
                         'usuario_id' => $valoramigo
                     );
-                    array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
+                    $lista = $publicacionRepository->findBy($parametrosBusqueda2);
                 }
 
-                return $this->json($array, 200, [], [
+                return $this->json($lista, 200, [], [
                     AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
                     ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                         return $obj->getId();
@@ -303,26 +307,41 @@ class PublicacionController extends AbstractController
     }
     #[Route('/api/publicacion/like', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
-    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
+    #[OA\RequestBody(description: "ID publicacion", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
     #[OA\Response(response: 200,description: "Like sumado correctamente")]
-    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository,
+                              UsuarioRepository $usuarioRepository): JsonResponse
     {
-        $json  = json_decode($request->getContent(), true);
 
+        $json  = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
         $id = $json['id'];
+
 
         $parametrosBusqueda = array(
             'id' => $id
         );
 
+
+        $parametrosBusqueda2 = array(
+            'id' => $idu
+        );
+
         $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $usuario = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+
 
         $likesSumado = $publicacion->getLikes()+1 ;
 
-        $publicacionRepository->sumarLike($id, $likesSumado);
+        $publicacionRepository->sumarLike($idu, $likesSumado);
 
         return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
     }
+
     #[Route('/api/publicaciones/mis-publicaciones',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
     #[Security(name: "apikey")]
@@ -337,7 +356,7 @@ class PublicacionController extends AbstractController
         );
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
-        if(isEmpty($listPublicacion1)){
+        if(!isEmpty($listPublicacion1)){
             return new JsonResponse("No tienes Publicaciones",200,[],true);
         }
         foreach($listPublicacion1 as $user){

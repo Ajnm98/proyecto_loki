@@ -64,9 +64,7 @@ class DtoConverters
         if($publicacion->getLikes()!=null) {
             $publicacionDto->setLikes($publicacion->getLikes());
         }
-        if($publicacion->getTag()!=null) {
-            $publicacionDto->setTag($publicacion->getTag());
-        }
+
 
         return $publicacionDto;
     }

@@ -265,7 +265,7 @@ class AmigoController extends AbstractController
             );
 
             $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
-            if(isEmpty($listAmigos)){
+            if(!isEmpty($listAmigos)){
                 return new JsonResponse("Sin amigos enlazados",200,[],true);
             }
 

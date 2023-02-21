@@ -74,6 +74,7 @@ class Usuario
     public function __construct()
     {
         $this->usuario_bloqueado_id= new ArrayCollection();
+        $this->likesUsuarios = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -237,5 +238,7 @@ class Usuario
 
         return $this;
     }
+
+
 }
 
