@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PublicacionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -34,23 +36,15 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
-    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: PublicacionTags::class)]
-    private Collection $publicacion_id;
+//    #[ORM\Column(length: 255, nullable: true)]
+//    #[ORM\JoinColumn(name: 'tag',nullable: false)]
+//    private ?string $tag = null;
 
-    /**
-     * @return Collection
-     */
-    public function getPublicacionId(): Collection
-    {
-        return $this->publicacion_id;
-    }
 
-    /**
-     * @param Collection $publicacion_id
-     */
-    public function setPublicacionId(Collection $publicacion_id): void
+    public function __construct()
     {
-        $this->publicacion_id = $publicacion_id;
+        $this->publicacion_likes = new ArrayCollection();
+        $this->LikesUsuarios = new ArrayCollection();
     }
 
     public function getId(): ?int

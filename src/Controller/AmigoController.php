@@ -139,32 +139,68 @@ class AmigoController extends AbstractController
 // BUSCA POR ID DE LA RELACION EN LA BBDD, CAMBIAR A BUSCAR POR NOMBRE
     #[Route('/api/amigos/buscar', name: 'amigos_buscar', methods: ['GET'])]
     #[OA\Tag(name: 'Amigos')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-    public function buscarPorNombre(AmigosRepository $amigosRepository,
-                                    Request $request,  DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    #[OA\Response(response: 300,description: "No se pudo encontrar los amigos correctamente ")]
+    public function buscarPorId(AmigosRepository $amigosRepository, Request $request, Utilidades $utils,
+                                DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
         $id = $request->query->get("id");
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
 
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
 
-        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'id' => $id
+            );
 
-        foreach($listAmigos as $user){
-            $usarioDto = $converters-> amigosToDto($user);
-            $json = $jsonResponseConverter->toJson($usarioDto,null);
-            $listJson[] = json_decode($json);
-        }
+            $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+            foreach ($listAmigos as $user) {
+                $usarioDto = $converters->amigosToDto($user);
+                $json = $jsonResponseConverter->toJson($usarioDto, null);
+                $listJson[] = json_decode($json);
+            }
 
 
 //        $listJson = $utilidades->toJson($listUsuarios);
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
-        ]);
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+        }
+        elseif($utils->comprobarPermisos($request, 1)){
+            $parametrosBusqueda = array(
+                'id' => $idu
+            );
+
+            $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+
+            foreach ($listAmigos as $user) {
+                $usarioDto = $converters->amigosToDto($user);
+                $json = $jsonResponseConverter->toJson($usarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+
+//        $listJson = $utilidades->toJson($listUsuarios);
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+
+        }else{ return new JsonResponse("{ mensaje: No se pudo encontrar los amigos correctamente }", 300, [], true);}
+
+
+
     }
     #[Route('/api/amigos/delete', name: 'amigos_delete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Amigos')]
@@ -229,7 +265,7 @@ class AmigoController extends AbstractController
             );
 
             $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
-            if(isEmpty($listAmigos)){
+            if(!isEmpty($listAmigos)){
                 return new JsonResponse("Sin amigos enlazados",200,[],true);
             }
 
@@ -249,10 +285,13 @@ class AmigoController extends AbstractController
 
     #[Route('/api/amigos/buscarAmigo', name: 'amigo_buscar_id', methods: ['GET'])]
     #[OA\Tag(name: 'Amigos')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Parameter(name: "usuario_amigo", description: "Nombre de usuario del amigo", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-    public function buscarAmigo(AmigosRepository $amigosRepository,
+    #[OA\Response(response: 300,description: "No existe el usuario amigo")]
+    #[OA\Response(response: 400,description: "No se pudo buscar el usuario amigo")]
+    public function buscarAmigo(AmigosRepository $amigosRepository, Utilidades $utils,
                                     Request $request,DtoConverters $converters, UsuarioRepository $usuarioRepository, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
 
@@ -260,38 +299,81 @@ class AmigoController extends AbstractController
 
         $id_usuario = $request->query->get("usuario_id");
         $amigo = $request->query->get("usuario_amigo");
+        $apikey = $request->headers->get('apikey');
+        $id = Token::getPayload($apikey)["user_id"];
 
-        $parametrosBusqueda = array(
-            'usuario' => $amigo
-        );
+        if ($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario' => $amigo
+            );
 
-        $amigo = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+            $amigo = $usuarioRepository->findOneBy($parametrosBusqueda, []);
 
-        if ($amigo != null) {
-            $amigo_id = $amigo->getId();
-        } else {
+            if ($amigo != null) {
+                $amigo_id = $amigo->getId();
+            } else {
 
 
-        return new JsonResponse("{ mensaje: No existe el usuario amigo }", 200, [], true);
-    }
-             $parametrosBusqueda2 = array(
-                 'usuario_id' => $id_usuario,
-                 'amigo_id'=> $amigo_id
-        );
+                return new JsonResponse("{ mensaje: No existe el usuario amigo }", 200, [], true);
+            }
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $id_usuario,
+                'amigo_id' => $amigo_id
+            );
 
-        $listAmigo = $amigosRepository->findBy($parametrosBusqueda2, []);
+            $listAmigo = $amigosRepository->findBy($parametrosBusqueda2, []);
 
-        foreach($listAmigo as $user){
-            $usarioDto = $converters-> amigosToDto($user);
-            $usuario2 = $usarioDto->getAmigoId();
-            $json = $jsonResponseConverter->toJson($usuario2,null);
-            $listJson[] = json_decode($json);
-        }
+            foreach ($listAmigo as $user) {
+                $usarioDto = $converters->amigosToDto($user);
+                $usuario2 = $usarioDto->getAmigoId();
+                $json = $jsonResponseConverter->toJson($usuario2, null);
+                $listJson[] = json_decode($json);
+            }
             return $this->json($listJson, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
             ]);
-    }
+        }
+        elseif($utils->comprobarPermisos($request, 1)){
+            $parametrosBusqueda = array(
+                'usuario' => $amigo
+            );
+
+            $amigo = $usuarioRepository->findOneBy($parametrosBusqueda, []);
+
+            if ($amigo != null) {
+                $amigo_id = $amigo->getId();
+            } else {
+
+
+                return new JsonResponse("{ mensaje: No existe el usuario amigo }", 300, [], true);
+            }
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $id,
+                'amigo_id' => $amigo_id
+            );
+
+            $listAmigo = $amigosRepository->findBy($parametrosBusqueda2, []);
+
+            foreach ($listAmigo as $user) {
+                $usarioDto = $converters->amigosToDto($user);
+                $usuario2 = $usarioDto->getAmigoId();
+                $json = $jsonResponseConverter->toJson($usuario2, null);
+                $listJson[] = json_decode($json);
+            }
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+        }
+        return new JsonResponse("{ mensaje: No se pudo buscar el usuario amigo }", 400, [], true);
+        }
+
+
 
 
 }

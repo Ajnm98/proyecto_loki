@@ -63,103 +63,195 @@ class ChatController extends AbstractController
 
     #[Route('/api/chat/privado',  methods: ['GET'])]
     #[OA\Tag(name:'Chat')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: ChatDTO::class))))]
-    public function listarchatUsuario(Request $request, ChatRepository $chatRepository,
+    #[OA\Response(response: 400,description: "No se pudo listar")]
+    public function listarchatUsuario(Request $request, ChatRepository $chatRepository, Utilidades $utils,
           DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
 
         $arraySort = new ArraySort();
-
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
         $id = $request->query->get("id");
 
-        $parametrosBusqueda = array(
-            'usuario_id_emisor' => $id
-        );
 
-        $parametrosBusqueda2 = array(
-            'usuario_id_receptor' => $id
-        );
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario_id_emisor' => $id
+            );
+
+            $parametrosBusqueda2 = array(
+                'usuario_id_receptor' => $id
+            );
 
 
-        $listChat1 = $chatRepository->findBy($parametrosBusqueda);
+            $listChat1 = $chatRepository->findBy($parametrosBusqueda);
 
-        $listChat2 = $chatRepository->findBy($parametrosBusqueda2);
+            $listChat2 = $chatRepository->findBy($parametrosBusqueda2);
 
-        $resultado = array_merge($listChat1, $listChat2);
+            $resultado = array_merge($listChat1, $listChat2);
 
-        $listArraySort = $arraySort->array_sort($resultado, 'fecha', SORT_ASC);
+            $listArraySort = $arraySort->array_sort($resultado, 'fecha', SORT_ASC);
 
-        foreach($listArraySort as $user){
-            $usuarioDto = $converters-> chatToDto($user);
-            $json = $jsonResponseConverter->toJson($usuarioDto,null);
-            $listJson[] = json_decode($json);
+            foreach ($listArraySort as $user) {
+                $usuarioDto = $converters->chatToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
+        }
+        elseif($utils->comprobarPermisos($request, 1)){
+
+            $parametrosBusqueda = array(
+                'usuario_id_emisor' => $idu
+            );
+
+            $parametrosBusqueda2 = array(
+                'usuario_id_receptor' => $idu
+            );
+
+
+            $listChat1 = $chatRepository->findBy($parametrosBusqueda);
+
+            $listChat2 = $chatRepository->findBy($parametrosBusqueda2);
+
+            $resultado = array_merge($listChat1, $listChat2);
+
+            $listArraySort = $arraySort->array_sort($resultado, 'fecha', SORT_ASC);
+
+            foreach ($listArraySort as $user) {
+                $usuarioDto = $converters->chatToDto($user);
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+            ]);
         }
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
-        ]);
-
-
-
+        else{
+            return new JsonResponse("{ message: No se pudo listar}", 400,[],false);
+        }
     }
 
     #[Route('/api/chat/listachatsUsuario', name: 'chats_usuario',  methods: ['GET'])]
     #[OA\Tag(name:'Chat')]
+    #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-    public function listarchatsAbiertosUsuario(Request $request, ChatRepository $chatRepository): JsonResponse
+    #[OA\Response(response: 400,description: "No se pudo listar")]
+    public function listarchatsAbiertosUsuario(Request $request, ChatRepository $chatRepository, Utilidades $utils): JsonResponse
     {
 
         $id = $request->query->get("usuario_id");
-
-
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
         $array = array();
 
-        $parametrosBusqueda = array(
-            'usuario_id_emisor' => $id
-        );
 
-        $parametrosBusqueda2 = array(
-            'usuario_id_receptor' => $id
-        );
-
-        $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
-        $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
-
-        $listChats = array_merge($listChats1, $listChats2);
-
-        foreach ($listChats as $chat){
-            $parametrosBusqueda3 = array(
-                'id' => $id
+        if($utils->comprobarPermisos($request, 0)) {
+            $parametrosBusqueda = array(
+                'usuario_id_emisor' => $id
             );
 
-            if($chat->getUsuarioIdEmisor()->getId()!=$parametrosBusqueda3){
-                $chat1 = $chat->getUsuarioIdEmisor();
-                array_push($array, $chat1);
-            }
-            else{
-                $chat2 = $chat->getUsuarioIdReceptor();
-                array_push($array, $chat2);
+            $parametrosBusqueda2 = array(
+                'usuario_id_receptor' => $id
+            );
+
+            $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
+            $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
+
+            $listChats = array_merge($listChats1, $listChats2);
+
+            foreach ($listChats as $chat) {
+                $parametrosBusqueda3 = array(
+                    'id' => $id
+                );
+
+                if ($chat->getUsuarioIdEmisor()->getId() != $parametrosBusqueda3) {
+                    $chat1 = $chat->getUsuarioIdEmisor();
+                    array_push($array, $chat1);
+                } else {
+                    $chat2 = $chat->getUsuarioIdReceptor();
+                    array_push($array, $chat2);
+                }
+
             }
 
+            for ($i = 0; $i < count($array); ++$i) {
+                if ($id = $array[$i]->getId()) {
+                    unset($array[$i]);
+                }
+            }
+
+
+            return $this->json($array, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+
+            ]);
         }
+        elseif($utils->comprobarPermisos($request, 1)){
+            $parametrosBusqueda = array(
+                'usuario_id_emisor' => $idu
+            );
 
-        for($i = 0; $i < count($array); ++$i) {
-            if ($id = $array[$i]->getId()) {
-                unset($array[$i]);
+            $parametrosBusqueda2 = array(
+                'usuario_id_receptor' => $idu
+            );
+
+            $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
+            $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
+
+            $listChats = array_merge($listChats1, $listChats2);
+
+            foreach ($listChats as $chat) {
+                $parametrosBusqueda3 = array(
+                    'id' => $idu
+                );
+
+                if ($chat->getUsuarioIdEmisor()->getId() != $parametrosBusqueda3) {
+                    $chat1 = $chat->getUsuarioIdEmisor();
+                    array_push($array, $chat1);
+                } else {
+                    $chat2 = $chat->getUsuarioIdReceptor();
+                    array_push($array, $chat2);
+                }
+
             }
+
+            for ($i = 0; $i < count($array); ++$i) {
+                if ($id = $array[$i]->getId()) {
+                    unset($array[$i]);
+                }
+            }
+
+
+            return $this->json($array, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+
+            ]);
         }
-
-
-        return $this->json($array, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj) {
-                return $obj->getId();
-            }
-
-        ]);
+        else{
+            return new JsonResponse("{ message: No se pudo listar}", 400,[],false);
+        }
     }
 
 
