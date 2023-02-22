@@ -36,6 +36,9 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
+//    #[ORM\OneToOne(mappedBy: 'publicacion_id', cascade: ['persist', 'remove'])]
+//    private ?LikesUsuario $publicacion_id = null;
+
 //    #[ORM\Column(length: 255, nullable: true)]
 //    #[ORM\JoinColumn(name: 'tag',nullable: false)]
 //    private ?string $tag = null;
@@ -123,5 +126,27 @@ class Publicacion
 //
 //        return $this;
 //    }
+//
+//public function getPublicacionId(): ?LikesUsuario
+//{
+//    return $this->publicacion_id;
+//}
+//
+//public function setPublicacionId(?LikesUsuario $publicacion_id): self
+//{
+//    // unset the owning side of the relation if necessary
+//    if ($publicacion_id === null && $this->publicacion_id !== null) {
+//        $this->publicacion_id->setPublicacionId(null);
+//    }
+//
+//    // set the owning side of the relation if necessary
+//    if ($publicacion_id !== null && $publicacion_id->getPublicacionId() !== $this) {
+//        $publicacion_id->setPublicacionId($this);
+//    }
+//
+//    $this->publicacion_id = $publicacion_id;
+//
+//    return $this;
+//}
 
 }

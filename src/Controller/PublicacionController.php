@@ -141,7 +141,7 @@ class PublicacionController extends AbstractController
     #[OA\Response(response: 400,description: "No puedes ver las publicaciones de los amigos de otro usuario")]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
     public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, Utilidades $utils,
-                                                   PublicacionRepository $publicacionRepository)//: JsonResponse
+                                                   PublicacionRepository $publicacionRepository,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
     {
 
 //        $json = json_decode($request->getContent(), true);
@@ -150,6 +150,7 @@ class PublicacionController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];;
         $id = $request->query->get("usuario_id");
         $array = array();
+
 
         if($utils->comprobarPermisos($request, 0)) {
 
@@ -161,17 +162,21 @@ class PublicacionController extends AbstractController
 
             foreach ($listAmigos as $amigo) {
                 $valoramigo = $amigo->getAmigoId();
-                $parametrosBusqueda2 = array(
-                    'usuario_id' => $valoramigo
-                );
-                array_push($array, $publicacionRepository->findBy($parametrosBusqueda2, []));
+                array_push($array, $valoramigo);
             }
 
-            return $this->json($array, 200, [], [
+            $parametrosBusqueda2 = array(
+                'usuario_id' => $array
+            );
+
+            $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
+
+            return $this->json($array2, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                     return $obj->getId();
                 },
+
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
@@ -180,20 +185,23 @@ class PublicacionController extends AbstractController
             }
             else{
                 $parametrosBusqueda = array(
-                    'usuario_id' => $id
+                    'usuario_id' => $idu
                 );
 
                 $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
 
                 foreach ($listAmigos as $amigo) {
                     $valoramigo = $amigo->getAmigoId();
-                    $parametrosBusqueda2 = array(
-                        'usuario_id' => $valoramigo
-                    );
-                    $lista = $publicacionRepository->findBy($parametrosBusqueda2);
+                    array_push($array, $valoramigo);
                 }
 
-                return $this->json($lista, 200, [], [
+                $parametrosBusqueda2 = array(
+                    'usuario_id' => $array
+                );
+
+                $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
+
+                return $this->json($array2, 200, [], [
                     AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
                     ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                         return $obj->getId();
