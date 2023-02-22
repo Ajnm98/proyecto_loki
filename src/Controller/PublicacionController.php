@@ -19,6 +19,7 @@ use App\Repository\LikesRepository;
 use App\Repository\LikesUsuarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
+use App\Repository\TagsRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
@@ -264,7 +265,8 @@ class PublicacionController extends AbstractController
 #[OA\Response(response: 300,description: "No se pudo crear correctamente")]
 #[OA\Response(response: 400,description: "No puedes crear publicaciones de otro usuario")]
     public function save(UsuarioRepository $usuarioRepository,Request $request,
-                         Utilidades $utils): JsonResponse
+                         Utilidades $utils,PublicacionRepository $publicacionRepository,
+                        TagsRepository $tagsRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -326,8 +328,9 @@ class PublicacionController extends AbstractController
 
                 //adjuntamos a la tabla intermedia
 
-                $publicacionTagsNuevo->setPublicacion($publicacionNuevo);
-                $publicacionTagsNuevo->setTags($tagsNuevo);
+
+                $publicacionTagsNuevo->setPublicacionId($publicacionRepository->findOneBy(array("usuario_id"=>$usuario)));
+                $publicacionTagsNuevo->setTagsId($tagsRepository->findOneBy(array("nombre"=>$tags)));
                 $em = $this->doctrine->getManager();
                 $em->persist($publicacionTagsNuevo);
                 $em->flush();

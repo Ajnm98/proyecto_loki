@@ -5,7 +5,7 @@ use App\Repository\PublicacionTagsRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PublicacionTagsRepository::class)]
-#[ORM\Table]
+#[ORM\Table(name: "publicaciontags")]
 class PublicacionTags
 {
     #[ORM\Id]
@@ -15,11 +15,11 @@ class PublicacionTags
 
     #[ORM\ManyToOne(cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'tags_id',nullable: false)]
-    private ?Tags $tags = null;
+    private ?Tags $tags_id = null;
 
     #[ORM\ManyToOne(cascade:['persist', 'remove'])]
     #[ORM\JoinColumn(name: 'publicacion_id',nullable: false)]
-    private ?Publicacion $publicacion = null;
+    private ?Publicacion $publicacion_id = null;
 
     public function getId(): ?int
     {
@@ -29,34 +29,39 @@ class PublicacionTags
     /**
      * @return Tags|null
      */
-    public function getTags(): ?Tags
+    public function getTagsId(): ?Tags
     {
-        return $this->tags;
+        return $this->tags_id;
     }
 
     /**
-     * @param Tags|null $tags
+     * @param Tags|null $tags_id
      */
-    public function setTags(?Tags $tags): void
+    public function setTagsId(?Tags $tags_id): void
     {
-        $this->tags = $tags;
+        $this->tags_id = $tags_id;
     }
 
     /**
      * @return Publicacion|null
      */
-    public function getPublicacion(): ?Publicacion
+    public function getPublicacionId(): ?Publicacion
     {
-        return $this->publicacion;
+        return $this->publicacion_id;
     }
 
     /**
-     * @param Publicacion|null $publicacion
+     * @param Publicacion|null $publicacion_id
      */
-    public function setPublicacion(?Publicacion $publicacion): void
+    public function setPublicacionId(?Publicacion $publicacion_id): void
     {
-        $this->publicacion = $publicacion;
+        $this->publicacion_id = $publicacion_id;
     }
+
+    /**
+     * @return Tags|null
+     */
+
 
 
 
