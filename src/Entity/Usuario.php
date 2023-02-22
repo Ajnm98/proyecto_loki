@@ -71,10 +71,14 @@ class Usuario
     #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: ApiKey::class, orphanRemoval: true)]
     private Collection $apiKeys;
 
+//    #[ORM\OneToMany(mappedBy: 'usuario_id', targetEntity: LikesUsuario::class)]
+//    private Collection $likesusuario_id;
+
     public function __construct()
     {
         $this->usuario_bloqueado_id= new ArrayCollection();
         $this->likesUsuarios = new ArrayCollection();
+        $this->likesusuario_id = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -238,6 +242,36 @@ class Usuario
 
         return $this;
     }
+
+//    /**
+//     * @return Collection<int, LikesUsuario>
+//     */
+//    public function getLikesusuarioId(): Collection
+//    {
+//        return $this->likesusuario_id;
+//    }
+
+//    public function addLikesusuarioId(LikesUsuario $likesusuarioId): self
+//    {
+//        if (!$this->likesusuario_id->contains($likesusuarioId)) {
+//            $this->likesusuario_id->add($likesusuarioId);
+//            $likesusuarioId->setUsuarioId($this);
+//        }
+//
+//        return $this;
+//    }
+//
+//    public function removeLikesusuarioId(LikesUsuario $likesusuarioId): self
+//    {
+//        if ($this->likesusuario_id->removeElement($likesusuarioId)) {
+//            // set the owning side to null (unless already changed)
+//            if ($likesusuarioId->getUsuarioId() === $this) {
+//                $likesusuarioId->setUsuarioId(null);
+//            }
+//        }
+//
+//        return $this;
+//    }
 
 
 }
