@@ -433,5 +433,34 @@ class PublicacionController extends AbstractController
         return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
     }
 
+    #[Route('/api/publicaciones/publicaciones-por-id',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
+    public function listarPublicacionesPorId(Request $request, PublicacionRepository $publicacionRepository,
+                                           DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    {
+        $id = $request->query->get("id");
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+        if(!isEmpty($listPublicacion1)){
+            return new JsonResponse("No tienes Publicaciones",200,[],true);
+        }
+        foreach($listPublicacion1 as $user){
+            $usuarioDto = $converters->publicacionToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
+        ]);
+    }
+
 
 }
