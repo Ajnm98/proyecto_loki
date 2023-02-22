@@ -177,12 +177,12 @@ class PublicacionController extends AbstractController
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
-            if($idu!=$id){
-                return new JsonResponse("{ mensaje: No puedes ver las publicaciones de los amigos de otro usuario}", 400, [], true);
-            }
-            else{
+//            if($idu!=$id){
+//                return new JsonResponse("{ mensaje: No puedes ver las publicaciones de los amigos de otro usuario}", 400, [], true);
+//            }
+//            else{
                 $parametrosBusqueda = array(
-                    'usuario_id' => $id
+                    'usuario_id' => $idu
                 );
 
                 $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
@@ -202,7 +202,7 @@ class PublicacionController extends AbstractController
                     },
 
                 ]);
-            }
+//            }
         }
         else{
             return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);

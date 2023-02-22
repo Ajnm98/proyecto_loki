@@ -36,10 +36,6 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
-//    #[ORM\Column(length: 255, nullable: true)]
-//    #[ORM\JoinColumn(name: 'tag',nullable: false)]
-//    private ?string $tag = null;
-
 
     public function __construct()
     {
@@ -112,15 +108,5 @@ class Publicacion
         return $this;
     }
 
-    public function getTag(): ?string
-    {
-        return $this->tag;
-    }
 
-    public function setTag(?string $tag): self
-    {
-        $this->tag = $tag;
-
-        return $this;
-    }
 }
