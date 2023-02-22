@@ -7,13 +7,12 @@ use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
 use App\Dto\SumarRestarLikeDTO;
-use App\Entity\Likes;
+
 use App\Entity\LikesUsuario;
 use App\Entity\Publicacion;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
-use App\Repository\LikesRepository;
 use App\Repository\LikesUsuarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
@@ -313,12 +312,14 @@ class PublicacionController extends AbstractController
         }
 
     }
-    #[Route('/api/publicacion/like', name: 'publicacionlike', methods: ['POST'])]
+    #[Route('/api/publicacion/likeodislike', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "ID publicacion", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
     #[OA\Response(response: 200,description: "Like sumado correctamente")]
-    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository,
-                              UsuarioRepository $usuarioRepository): JsonResponse
+    #[OA\Response(response: 300,description: "Like restado correctamente")]
+    public function sumarRestarLike(Request $request,PublicacionRepository $publicacionRepository,
+                              UsuarioRepository $usuarioRepository, LikesUsuarioRepository $likesUsuarioRepository): JsonResponse
     {
 
         $json  = json_decode($request->getContent(), true);
@@ -326,11 +327,9 @@ class PublicacionController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
         $id = $json['id'];
 
-
         $parametrosBusqueda = array(
             'id' => $id
         );
-
 
         $parametrosBusqueda2 = array(
             'id' => $idu
@@ -340,14 +339,34 @@ class PublicacionController extends AbstractController
 
         $usuario = $usuarioRepository->findOneBy($parametrosBusqueda2);
 
+        $parametrosBusqueda3 = array(
+            'publicacion_id' => $id,
+            'usuario_id' => $idu
+        );
 
+        if($likesUsuarioRepository->findBy($parametrosBusqueda3)!=null){
 
+            $likesSumado = $publicacion->getLikes()-1 ;
+            $publicacionRepository->sumarLike($id, $likesSumado);
+            $likesUsuarioRepository->likessumadoborrar($idu, $id);
 
-        $likesSumado = $publicacion->getLikes()+1 ;
+            return new JsonResponse("{ mensaje: Like restado correctamente }", 300, [], true);
+        }else{
 
-        $publicacionRepository->sumarLike($idu, $likesSumado);
+            $likesUsuario = new LikesUsuario();
 
-        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+            $likesUsuario->setUsuarioId($usuario);
+            $likesUsuario->setPublicacionId($publicacion);
+            $em = $this->doctrine->getManager();
+            $em->persist($likesUsuario);
+            $em->flush();
+
+            $likesSumado = $publicacion->getLikes()+1 ;
+
+            $publicacionRepository->sumarLike($id, $likesSumado);
+
+            return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+        }
     }
 
     #[Route('/api/publicaciones/mis-publicaciones',  methods: ['GET'])]
@@ -378,29 +397,6 @@ class PublicacionController extends AbstractController
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
 
         ]);
-    }
-
-    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
-    #[OA\Tag(name: 'Publicacion')]
-    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
-    #[OA\Response(response: 200,description: "Like restado correctamente")]
-    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
-
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
-
-        $likesSumado = $publicacion->getLikes()-1 ;
-
-        $publicacionRepository->sumarLike($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
     }
 
 

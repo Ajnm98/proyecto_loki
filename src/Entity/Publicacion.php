@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PublicacionRepository::class)]
+#[ORM\Table]
 class Publicacion
 {
     #[ORM\Id]
@@ -36,8 +37,9 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
-//    #[ORM\OneToOne(mappedBy: 'publicacion_id', cascade: ['persist', 'remove'])]
-//    private ?LikesUsuario $publicacion_id = null;
+    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: LikesUsuario::class)]
+    private Collection $publicacion_likeUsuario;
+
 
 //    #[ORM\Column(length: 255, nullable: true)]
 //    #[ORM\JoinColumn(name: 'tag',nullable: false)]
@@ -48,6 +50,7 @@ class Publicacion
     {
         $this->publicacion_likes = new ArrayCollection();
         $this->LikesUsuarios = new ArrayCollection();
+        $this->publicacion_likeUsuario = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -114,7 +117,11 @@ class Publicacion
 
         return $this;
     }
-//
+
+
+
+
+
 //    public function getTag(): ?string
 //    {
 //        return $this->tag;
@@ -126,27 +133,36 @@ class Publicacion
 //
 //        return $this;
 //    }
-//
-//public function getPublicacionId(): ?LikesUsuario
-//{
-//    return $this->publicacion_id;
-//}
-//
-//public function setPublicacionId(?LikesUsuario $publicacion_id): self
-//{
-//    // unset the owning side of the relation if necessary
-//    if ($publicacion_id === null && $this->publicacion_id !== null) {
-//        $this->publicacion_id->setPublicacionId(null);
-//    }
-//
-//    // set the owning side of the relation if necessary
-//    if ($publicacion_id !== null && $publicacion_id->getPublicacionId() !== $this) {
-//        $publicacion_id->setPublicacionId($this);
-//    }
-//
-//    $this->publicacion_id = $publicacion_id;
-//
-//    return $this;
-//}
+
+/**
+ * @return Collection<int, LikesUsuario>
+ */
+public function getPublicacionLikeUsuario(): Collection
+{
+    return $this->publicacion_likeUsuario;
+}
+
+public function addPublicacionLikeUsuario(LikesUsuario $publicacionLikeUsuario): self
+{
+    if (!$this->publicacion_likeUsuario->contains($publicacionLikeUsuario)) {
+        $this->publicacion_likeUsuario->add($publicacionLikeUsuario);
+        $publicacionLikeUsuario->setPublicacionId($this);
+    }
+
+    return $this;
+}
+
+public function removePublicacionLikeUsuario(LikesUsuario $publicacionLikeUsuario): self
+{
+    if ($this->publicacion_likeUsuario->removeElement($publicacionLikeUsuario)) {
+        // set the owning side to null (unless already changed)
+        if ($publicacionLikeUsuario->getPublicacionId() === $this) {
+            $publicacionLikeUsuario->setPublicacionId(null);
+        }
+    }
+
+    return $this;
+}
+
 
 }
