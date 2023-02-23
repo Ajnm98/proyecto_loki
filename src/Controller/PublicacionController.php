@@ -82,7 +82,6 @@ class PublicacionController extends AbstractController
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository, Utilidades $utils,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-
         $id = $request->query->get("usuario_id");
         $apikey = $request->headers->get('apikey');
         $idu = Token::getPayload($apikey)["user_id"];
@@ -182,11 +181,8 @@ class PublicacionController extends AbstractController
             $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
             return $this->json($array2, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
-
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
@@ -211,13 +207,10 @@ class PublicacionController extends AbstractController
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
-                return $this->json($array2, 200, [], [
-                    AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                    ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                        return $obj->getId();
-                    },
-
-                ]);
+            return $this->json($array2, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            ]);
 //            }
         }
         else{
@@ -334,6 +327,8 @@ class PublicacionController extends AbstractController
                     $em = $this->doctrine->getManager();
                     $em->persist($tagsNuevo);
                     $em->flush();
+                }else{
+
                 }
 
                 //adjuntamos a la tabla intermedia
