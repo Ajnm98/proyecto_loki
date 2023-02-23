@@ -73,14 +73,14 @@ class UsuarioController extends AbstractController
     #[OA\Tag(name: 'Usuario')]
     #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-
     public function buscarPorNombre(UsuarioRepository $usuarioRepository,
                                     Request $request): JsonResponse
     {
         $json = json_decode($request->getContent(), true);
         $nick = $request->query->get("nombre");
+        $nick2 = ucfirst(strtolower($nick));
         $a = "%";
-        $final= $a.$nick.$a;
+        $final= $a.$nick2.$a;
 
         $usuario = $usuarioRepository->buscarNombre($final);
 
@@ -200,8 +200,9 @@ class UsuarioController extends AbstractController
     {
         $json = json_decode($request->getContent(), true);
         $nick = $request->query->get("nick");
+        $nick2 = ucfirst(strtolower($nick));
         $a = "%";
-        $final= $a.$nick.$a;
+        $final= $a.$nick2.$a;
 
         $usuario = $usuarioRepository->buscarNick($final);
 
