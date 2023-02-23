@@ -148,6 +148,7 @@ class BloqueadosController extends AbstractController
     #[OA\Parameter(name: "id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
     #[OA\Response(response: 300,description: "No se pudo bloquear correctamente")]
+    #[OA\Response(response: 400,description: "No hay bloqueados")]
     public function listarbloqueadosUsuario(Request $request,BloqueadosRepository $bloqueadosRepository, Utilidades $utils,
                                             DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
@@ -164,6 +165,10 @@ class BloqueadosController extends AbstractController
             );
 
             $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
+
+            if(count($listbloqueados)==0){
+                return new JsonResponse("{ mensaje: No hay bloqueados }", 400, [], true);
+            }
 
             foreach ($listbloqueados as $user) {
                 $usarioDto = $converters->BloqueadoToDto($user);
@@ -185,6 +190,10 @@ class BloqueadosController extends AbstractController
             );
 
             $listbloqueados = $bloqueadosRepository->findBy($parametrosBusqueda, []);
+
+            if(count($listbloqueados)==0){
+                return new JsonResponse("{ mensaje: No hay bloqueados }", 400, [], true);
+            }
 
             foreach ($listbloqueados as $user) {
                 $usarioDto = $converters->BloqueadoToDto($user);

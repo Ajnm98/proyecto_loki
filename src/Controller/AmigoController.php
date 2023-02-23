@@ -253,6 +253,7 @@ class AmigoController extends AbstractController
     #[OA\Tag(name: 'Amigos')]
     #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+    #[OA\Response(response: 300,description: "Sin amigos")]
     public function buscarMisAmigos(AmigosRepository $amigosRepository, Request $request,  DtoConverters $converters,
                                     JsonResponseConverter $jsonResponseConverter, Utilidades $utils): JsonResponse
     {
@@ -265,8 +266,8 @@ class AmigoController extends AbstractController
             );
 
             $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
-            if(!isEmpty($listAmigos)){
-                return new JsonResponse("Sin amigos enlazados",200,[],true);
+            if(count($listAmigos)==0){
+                return new JsonResponse("Sin amigos",300,[],true);
             }
 
             foreach($listAmigos as $user){
@@ -346,8 +347,6 @@ class AmigoController extends AbstractController
             if ($amigo != null) {
                 $amigo_id = $amigo->getId();
             } else {
-
-
                 return new JsonResponse("{ mensaje: No existe el usuario amigo }", 300, [], true);
             }
             $parametrosBusqueda2 = array(

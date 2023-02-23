@@ -160,31 +160,7 @@ class RespuestaController extends AbstractController
     }
 
 
-    #[Route('/api/respuesta/like', name: 'respuestaLike', methods: ['POST'])]
-    #[OA\Tag(name: 'Respuesta')]
-    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
-    #[OA\Response(response: 200,description: "Like sumado correctamente")]
-    public function sumarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
 
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $respuestaRepository->findOneBy($parametrosBusqueda);
-
-
-        $likesSumado = $publicacion->getLikes()+1 ;
-
-        $respuestaRepository->sumarLikeRespuesta($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
-
-
-    }
     #[Route('/api/respuesta/buscar-por-publicacion', name: 'respuestaBuscarPorPublicacion', methods: ['GET'])]
     #[OA\Tag(name: 'Respuesta')]
     #[OA\Parameter(name: "publicacion_id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]

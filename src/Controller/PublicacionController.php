@@ -96,7 +96,7 @@ class PublicacionController extends AbstractController
 
             $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
 
-            if(!isEmpty($listPublicacion1)){
+            if(count($listPublicacion1)==0){
                 return new JsonResponse("{ mensaje: No tiene aún publicaciones creadas }", 400, [], true);
             }
 
@@ -121,7 +121,7 @@ class PublicacionController extends AbstractController
 
             $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
 
-            if(!isEmpty($listPublicacion1)){
+            if(count($listPublicacion1)==0){
                 return new JsonResponse("{ mensaje: No tiene aún publicaciones creadas }", 400, [], true);
             }
 
@@ -414,7 +414,7 @@ class PublicacionController extends AbstractController
     #[Route('/api/publicaciones/mis-publicaciones',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
     #[Security(name: "apikey")]
-    #[OA\Response(response: 100,description: "No tienes Publicaciones")]
+    #[OA\Response(response: 300,description: "No tienes Publicaciones")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     public function listarMisPublicaciones(Request $request, PublicacionRepository $publicacionRepository,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
@@ -426,8 +426,8 @@ class PublicacionController extends AbstractController
         );
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
-        if(!isEmpty($listPublicacion1)){
-            return new JsonResponse("No tienes Publicaciones",100,[],true);
+        if(count($listPublicacion1)==0){
+            return new JsonResponse("No tienes Publicaciones",300,[],true);
         }
 //        foreach($listPublicacion1 as $user){
 //            $usuarioDto = $converters->publicacionToDto($user);
@@ -445,6 +445,7 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicaciones/publicaciones-por-id',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[OA\Parameter(name: "id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     public function listarPublicacionesPorId(Request $request, PublicacionRepository $publicacionRepository,
                                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
@@ -456,7 +457,7 @@ class PublicacionController extends AbstractController
         );
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
-        if(!isEmpty($listPublicacion1)){
+        if(count($listPublicacion1)==0){
             return new JsonResponse("No tienes Publicaciones",200,[],true);
         }
         foreach($listPublicacion1 as $user){
