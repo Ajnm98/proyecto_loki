@@ -79,7 +79,7 @@ class PublicacionController extends AbstractController
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
-    #[OA\Response(response: 300,description: "No tiene aún publicaciones creadas")]
+    #[OA\Response(response: 400,description: "No tiene aún publicaciones creadas")]
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository, Utilidades $utils,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
