@@ -38,7 +38,7 @@ class Publicacion
     private ?int $likes = null;
 
     #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: PublicacionTags::class)]
-    private Collection $publicacion_id;
+    private Collection $tags;
 
 
     public function __construct()
@@ -110,6 +110,22 @@ class Publicacion
         $this->likes = $likes;
 
         return $this;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param Collection $tags
+     */
+    public function setTags(Collection $tags): void
+    {
+        $this->tags = $tags;
     }
 
 

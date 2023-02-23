@@ -397,14 +397,14 @@ class PublicacionController extends AbstractController
         if(!isEmpty($listPublicacion1)){
             return new JsonResponse("No tienes Publicaciones",200,[],true);
         }
-        foreach($listPublicacion1 as $user){
-            $usuarioDto = $converters->publicacionToDto($user);
-            $json = $jsonResponseConverter->toJson($usuarioDto,null);
-            $listJson[] = json_decode($json);
-        }
+//        foreach($listPublicacion1 as $user){
+//            $usuarioDto = $converters->publicacionToDto($user);
+//            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+//            $listJson[] = json_decode($json);
+//        }
 
-        return $this->json($listJson, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+        return $this->json($listPublicacion1, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
 
         ]);

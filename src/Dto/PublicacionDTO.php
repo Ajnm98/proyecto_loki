@@ -3,6 +3,8 @@
 namespace App\Dto;
 
 use Symfony\Component\Validator\Constraints\Date;
+use Doctrine\Common\Collections\Collection;
+
 
 class PublicacionDTO
 {
@@ -12,6 +14,7 @@ class PublicacionDTO
     private string $fecha;
     private string $foto;
     private int $likes;
+    private Collection $tags;
 //    private string $tag;
 
     public function __construct()
@@ -113,6 +116,22 @@ class PublicacionDTO
     public function setLikes(int $likes): void
     {
         $this->likes = $likes;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param Collection $tags
+     */
+    public function setTags(Collection $tags): void
+    {
+        $this->tags = $tags;
     }
 //
 //    /**
