@@ -14,8 +14,7 @@ class PublicacionDTO
     private string $fecha;
     private string $foto;
     private int $likes;
-    private Collection $tags;
-//    private string $tag;
+
 
     public function __construct()
     {
@@ -118,37 +117,8 @@ class PublicacionDTO
         $this->likes = $likes;
     }
 
-    /**
-     * @return Collection
-     */
-    public function getTags(): Collection
-    {
-        return $this->tags;
-    }
 
-    /**
-     * @param Collection $tags
-     */
-    public function setTags(Collection $tags): void
-    {
-        $this->tags = $tags;
-    }
-//
-//    /**
-//     * @return string
-//     */
-//    public function getTag(): string
-//    {
-//        return $this->tag;
-//    }
-//
-//    /**
-//     * @param string $tag
-//     */
-//    public function setTag(string $tag): void
-//    {
-//        $this->tag = $tag;
-//    }
+
 
 
 }
