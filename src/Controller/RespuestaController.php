@@ -59,14 +59,14 @@ class RespuestaController extends AbstractController
 
     }
 
-    #[Route('/api/respuesta/delete', name: 'respuestaDelete', methods: ['DELETE'])]
+    #[Route('/api/respuesta/delete', name: 'respuesta_delete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Respuesta')]
     #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
     #[OA\Response(response: 200,description: "Respuesta borrada correctamente")]
     #[OA\Response(response: 300,description: "No se pudo borrar correctamente")]
     #[OA\Response(response: 400,description: "No puedes borrar respuestas de otro usuario")]
-    public function delete(Request $request,RespuestaRepository $respuestaRepository,Utilidades $utils): JsonResponse
+    public function deleterespuesta(Request $request,RespuestaRepository $respuestaRepository,Utilidades $utils): JsonResponse
     {
 
         //Obtener Json del body
@@ -211,33 +211,5 @@ class RespuestaController extends AbstractController
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
-
-
-    #[Route('/api/respuesta/dislike', name: 'respuestaDislike', methods: ['POST'])]
-    #[OA\Tag(name: 'Respuesta')]
-    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
-    #[OA\Response(response: 200,description: "Like restado correctamente")]
-    public function restarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
-
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $respuestaRepository->findOneBy($parametrosBusqueda);
-
-
-        $likesSumado = $publicacion->getLikes()-1 ;
-
-        $respuestaRepository->sumarLikeRespuesta($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
-
-
-    }
-
 
 }

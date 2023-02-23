@@ -37,14 +37,20 @@ class Publicacion
     #[ORM\JoinColumn(name: 'likes',nullable: false)]
     private ?int $likes = null;
 
-    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: PublicacionTags::class)]
-    private Collection $tags;
+    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: LikesUsuario::class)]
+    private Collection $publicacion_likeUsuario;
+
+
+//    #[ORM\Column(length: 255, nullable: true)]
+//    #[ORM\JoinColumn(name: 'tag',nullable: false)]
+//    private ?string $tag = null;
 
 
     public function __construct()
     {
         $this->publicacion_likes = new ArrayCollection();
         $this->LikesUsuarios = new ArrayCollection();
+        $this->publicacion_likeUsuario = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -112,21 +118,51 @@ class Publicacion
         return $this;
     }
 
-    /**
-     * @return Collection
-     */
-    public function getTags(): Collection
-    {
-        return $this->tags;
+
+
+
+
+//    public function getTag(): ?string
+//    {
+//        return $this->tag;
+//    }
+//
+//    public function setTag(?string $tag): self
+//    {
+//        $this->tag = $tag;
+//
+//        return $this;
+//    }
+
+/**
+ * @return Collection<int, LikesUsuario>
+ */
+public function getPublicacionLikeUsuario(): Collection
+{
+    return $this->publicacion_likeUsuario;
+}
+
+public function addPublicacionLikeUsuario(LikesUsuario $publicacionLikeUsuario): self
+{
+    if (!$this->publicacion_likeUsuario->contains($publicacionLikeUsuario)) {
+        $this->publicacion_likeUsuario->add($publicacionLikeUsuario);
+        $publicacionLikeUsuario->setPublicacionId($this);
     }
 
-    /**
-     * @param Collection $tags
-     */
-    public function setTags(Collection $tags): void
-    {
-        $this->tags = $tags;
+    return $this;
+}
+
+public function removePublicacionLikeUsuario(LikesUsuario $publicacionLikeUsuario): self
+{
+    if ($this->publicacion_likeUsuario->removeElement($publicacionLikeUsuario)) {
+        // set the owning side to null (unless already changed)
+        if ($publicacionLikeUsuario->getPublicacionId() === $this) {
+            $publicacionLikeUsuario->setPublicacionId(null);
+        }
     }
+
+    return $this;
+}
 
 
 }

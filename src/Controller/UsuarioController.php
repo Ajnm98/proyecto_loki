@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Dto\BorrarUsuarioDTO;
 use App\Dto\CrearUsuarioDTO;
 use App\Dto\DtoConverters;
+use App\Dto\EditarUsuarioDTO;
 use App\Dto\UsuarioDTO;
 use App\Entity\ApiKey;
 use App\Entity\Login;
@@ -220,14 +221,16 @@ class UsuarioController extends AbstractController
     {
 
 //        if ($utils->comprobarPermisos($request,1)) {
-            $apikey = $request->headers->get("apikey");
-            $id_usuario = Token::getPayload($apikey)["user_id"];
-            $usuario = $usuarioRepository->findOneBy(array("id"=>$id_usuario));
+        $apikey = $request->headers->get("apikey");
+        $id_usuario = Token::getPayload($apikey)["user_id"];
+        $usuario = $usuarioRepository->findOneBy(array("id" => $id_usuario));
 
-            return $this->json($usuario, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-            ]);
+        return $this->json($usuario, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                return $obj->getId();
+            },
+        ]);
 
 //        } else {
 //            return $this->json([
@@ -255,6 +258,112 @@ class UsuarioController extends AbstractController
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
+
+    }
+
+        #[Route('/api/usuario/editar', name: 'editar_usuario', methods: ['POST'])]
+        #[OA\Tag(name: 'Usuario')]
+        #[Security(name: "apikey")]
+        #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:EditarUsuarioDTO::class)))]
+        #[OA\Response(response: 200,description: "Usuario editado correctamente")]
+        #[OA\Response(response: 300,description: "No se pudo editar correctamente")]
+        public function editarPerfil(UsuarioRepository $usuarioRepository,
+                                     Request $request,Utilidades $utils): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get("apikey");
+        $id_usuario = Token::getPayload($apikey)["user_id"];
+        $id = $json['id'];
+
+        if($utils->comprobarPermisos($request, 0)) {
+
+            $parametrosBusqueda = array(
+                'id' => $id
+            );
+
+            $usuario = $usuarioRepository->findOneBy($parametrosBusqueda);
+
+            if($json['usuario']!=null){
+                $usuario->setUsuario($json['usuario']);
+            }
+
+            if($json['nombre']!=null){
+                $usuario->setNombre($json['nombre']);
+            }
+
+            if($json['nick']!=null){
+                $usuario->setNick($json['nick']);
+            }
+
+            if($json['fecha']!=null){
+                $usuario->setFecha($json['fecha']);
+            }
+
+            if($json['telefono']!=null){
+                $usuario->setTelefono($json['telefono']);
+            }
+
+            if($json['foto']!=null){
+                $usuario->setFoto($json['foto']);
+            }
+
+            if($json['encabezado']!=null){
+                $usuario->setEncabezado($json['encabezado']);
+            }
+
+            $usuarioRepository->editarUsuario($usuario);
+
+            return new JsonResponse("{ mensaje: Usuario editado correctamente }", 200, [], true);
+
+        }
+        elseif ($utils->comprobarPermisos($request, 1)) {
+
+                $parametrosBusqueda2 = array(
+                    'id' => $id_usuario
+                );
+
+
+                $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+                if ($json['usuario'] != null) {
+                    $usuario2->setUsuario($json['usuario']);
+                }
+
+                if ($json['nombre'] != null) {
+                    $usuario2->setNombre($json['nombre']);
+                }
+
+                if ($json['nick'] != null) {
+                    $usuario2->setNick($json['nick']);
+                }
+
+                if ($json['fecha'] != null) {
+                    $usuario2->setFecha($json['fecha']);
+                }
+
+                if ($json['telefono'] != null) {
+                    $usuario2->setTelefono($json['telefono']);
+                }
+
+                if ($json['foto'] != null) {
+                    $usuario2->setFoto($json['foto']);
+                }
+
+                if ($json['encabezado'] != null) {
+                    $usuario2->setEncabezado($json['encabezado']);
+                }
+
+                 $usuarioRepository->editarUsuario($usuario2);
+
+                return new JsonResponse("{ mensaje: Usuario editado correctamente }", 200, [], true);
+
+            }
+        else {
+            return new JsonResponse("{ mensaje: No se pudo editar correctamente }", 300, [], true);
+        }
+
 
     }
 

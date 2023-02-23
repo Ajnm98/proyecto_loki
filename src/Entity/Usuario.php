@@ -71,14 +71,16 @@ class Usuario
     #[ORM\OneToMany(mappedBy: 'usuario', targetEntity: ApiKey::class, orphanRemoval: true)]
     private Collection $apiKeys;
 
-//    #[ORM\OneToMany(mappedBy: 'usuario_id', targetEntity: LikesUsuario::class)]
-//    private Collection $likesusuario_id;
+    #[ORM\OneToMany(mappedBy: 'usuario_id', targetEntity: LikesUsuario::class)]
+    private Collection $usuario_likesUsuario;
+
 
     public function __construct()
     {
         $this->usuario_bloqueado_id= new ArrayCollection();
         $this->likesUsuarios = new ArrayCollection();
         $this->likesusuario_id = new ArrayCollection();
+        $this->usuario_likesUsuario = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -134,7 +136,7 @@ class Usuario
         return $this->fecha;
     }
 
-    public function setFecha(?DateTime $fecha): self
+    public function setFecha(?String $fecha): self
     {
         $this->fecha = $fecha;
 
@@ -243,35 +245,36 @@ class Usuario
         return $this;
     }
 
-//    /**
-//     * @return Collection<int, LikesUsuario>
-//     */
-//    public function getLikesusuarioId(): Collection
-//    {
-//        return $this->likesusuario_id;
-//    }
+    /**
+     * @return Collection<int, LikesUsuario>
+     */
+    public function getUsuarioLikesUsuario(): Collection
+    {
+        return $this->usuario_likesUsuario;
+    }
 
-//    public function addLikesusuarioId(LikesUsuario $likesusuarioId): self
-//    {
-//        if (!$this->likesusuario_id->contains($likesusuarioId)) {
-//            $this->likesusuario_id->add($likesusuarioId);
-//            $likesusuarioId->setUsuarioId($this);
-//        }
-//
-//        return $this;
-//    }
-//
-//    public function removeLikesusuarioId(LikesUsuario $likesusuarioId): self
-//    {
-//        if ($this->likesusuario_id->removeElement($likesusuarioId)) {
-//            // set the owning side to null (unless already changed)
-//            if ($likesusuarioId->getUsuarioId() === $this) {
-//                $likesusuarioId->setUsuarioId(null);
-//            }
-//        }
-//
-//        return $this;
-//    }
+    public function addUsuarioLikesUsuario(LikesUsuario $usuarioLikesUsuario): self
+    {
+        if (!$this->usuario_likesUsuario->contains($usuarioLikesUsuario)) {
+            $this->usuario_likesUsuario->add($usuarioLikesUsuario);
+            $usuarioLikesUsuario->setUsuarioId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUsuarioLikesUsuario(LikesUsuario $usuarioLikesUsuario): self
+    {
+        if ($this->usuario_likesUsuario->removeElement($usuarioLikesUsuario)) {
+            // set the owning side to null (unless already changed)
+            if ($usuarioLikesUsuario->getUsuarioId() === $this) {
+                $usuarioLikesUsuario->setUsuarioId(null);
+            }
+        }
+
+        return $this;
+    }
+
 
 
 }

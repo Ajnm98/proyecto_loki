@@ -78,6 +78,7 @@ class PublicacionController extends AbstractController
     #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
+    #[OA\Response(response: 400,description: "No tiene aún publicaciones creadas")]
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository, Utilidades $utils,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
@@ -93,6 +94,10 @@ class PublicacionController extends AbstractController
             );
 
             $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+
+            if(!isEmpty($listPublicacion1)){
+                return new JsonResponse("{ mensaje: No tiene aún publicaciones creadas }", 400, [], true);
+            }
 
             foreach ($listPublicacion1 as $user) {
                 $usuarioDto = $converters->publicacionToDto($user);
@@ -114,6 +119,10 @@ class PublicacionController extends AbstractController
             );
 
             $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+
+            if(!isEmpty($listPublicacion1)){
+                return new JsonResponse("{ mensaje: No tiene aún publicaciones creadas }", 400, [], true);
+            }
 
             foreach ($listPublicacion1 as $user) {
                 $usuarioDto = $converters->publicacionToDto($user);
@@ -284,6 +293,7 @@ class PublicacionController extends AbstractController
             $publicacionNuevo->setTexto($json['texto']);
             $publicacionNuevo->setFecha(date('Y-m-d H:i:s'));
             $publicacionNuevo->setFoto($json['foto']);
+            $publicacionNuevo->setLikes(0);
 
             //GUARDAR
             $em = $this->doctrine->getManager();
@@ -306,6 +316,7 @@ class PublicacionController extends AbstractController
                 $publicacionNuevo->setTexto($json['texto']);
                 $publicacionNuevo->setFecha(date('Y-m-d H:i:s'));
                 $publicacionNuevo->setFoto($json['foto']);
+                $publicacionNuevo->setLikes(0);
 
                 //GUARDAR
                 $em = $this->doctrine->getManager();
@@ -341,12 +352,14 @@ class PublicacionController extends AbstractController
         }
 
     }
-    #[Route('/api/publicacion/like', name: 'publicacionlike', methods: ['POST'])]
+    #[Route('/api/publicacion/likeodislike', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "ID publicacion", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
     #[OA\Response(response: 200,description: "Like sumado correctamente")]
-    public function sumarLike(Request $request,PublicacionRepository $publicacionRepository,
-                              UsuarioRepository $usuarioRepository): JsonResponse
+    #[OA\Response(response: 300,description: "Like restado correctamente")]
+    public function sumarRestarLike(Request $request,PublicacionRepository $publicacionRepository,
+                              UsuarioRepository $usuarioRepository, LikesUsuarioRepository $likesUsuarioRepository): JsonResponse
     {
 
         $json  = json_decode($request->getContent(), true);
@@ -354,11 +367,9 @@ class PublicacionController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
         $id = $json['id'];
 
-
         $parametrosBusqueda = array(
             'id' => $id
         );
-
 
         $parametrosBusqueda2 = array(
             'id' => $idu
@@ -368,19 +379,40 @@ class PublicacionController extends AbstractController
 
         $usuario = $usuarioRepository->findOneBy($parametrosBusqueda2);
 
+        $parametrosBusqueda3 = array(
+            'publicacion_id' => $id,
+            'usuario_id' => $idu
+        );
 
+        if($likesUsuarioRepository->findBy($parametrosBusqueda3)!=null){
 
+            $likesSumado = $publicacion->getLikes()-1 ;
+            $publicacionRepository->sumarLike($id, $likesSumado);
+            $likesUsuarioRepository->likessumadoborrar($idu, $id);
 
-        $likesSumado = $publicacion->getLikes()+1 ;
+            return new JsonResponse("{ mensaje: Like restado correctamente }", 300, [], true);
+        }else{
 
-        $publicacionRepository->sumarLike($idu, $likesSumado);
+            $likesUsuario = new LikesUsuario();
 
-        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+            $likesUsuario->setUsuarioId($usuario);
+            $likesUsuario->setPublicacionId($publicacion);
+            $em = $this->doctrine->getManager();
+            $em->persist($likesUsuario);
+            $em->flush();
+
+            $likesSumado = $publicacion->getLikes()+1 ;
+
+            $publicacionRepository->sumarLike($id, $likesSumado);
+
+            return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
+        }
     }
 
     #[Route('/api/publicaciones/mis-publicaciones',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
     #[Security(name: "apikey")]
+    #[OA\Response(response: 100,description: "No tienes Publicaciones")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     public function listarMisPublicaciones(Request $request, PublicacionRepository $publicacionRepository,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
@@ -393,7 +425,7 @@ class PublicacionController extends AbstractController
 
         $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
         if(!isEmpty($listPublicacion1)){
-            return new JsonResponse("No tienes Publicaciones",200,[],true);
+            return new JsonResponse("No tienes Publicaciones",100,[],true);
         }
 //        foreach($listPublicacion1 as $user){
 //            $usuarioDto = $converters->publicacionToDto($user);
@@ -408,28 +440,6 @@ class PublicacionController extends AbstractController
         ]);
     }
 
-    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
-    #[OA\Tag(name: 'Publicacion')]
-    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
-    #[OA\Response(response: 200,description: "Like restado correctamente")]
-    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
-
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
-
-        $likesSumado = $publicacion->getLikes()-1 ;
-
-        $publicacionRepository->sumarLike($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
-    }
 
     #[Route('/api/publicaciones/publicaciones-por-id',  methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]

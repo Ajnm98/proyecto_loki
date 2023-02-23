@@ -85,4 +85,24 @@ class UsuarioRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
+
+    public function editarUsuario(Usuario $usuario): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+          UPDATE usuario SET usuario = :usuario, nombre = :nombre,
+            nick = :nick, fecha = :fecha, telefono = :telefono,
+            foto = :foto, encabezado = :encabezado
+            WHERE id = :id
+            ";
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['usuario' => $usuario->getUsuario(), 'nombre' => $usuario->getNombre(),
+            'nick' => $usuario->getNick(), 'fecha' => $usuario->getfecha(), 'telefono' => $usuario->getTelefono(), 'foto' => $usuario->getFoto(),
+            'encabezado' => $usuario->getEncabezado(), 'id' => $usuario->getId()]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 }
