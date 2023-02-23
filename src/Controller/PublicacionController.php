@@ -59,17 +59,15 @@ class PublicacionController extends AbstractController
 //        if($utils->comprobarPermisos($request, 0)) {
             $listPublicacion = $publicacionRepository->findAll();
 
-            foreach ($listPublicacion as $user) {
-                $usuarioDto = $converters->publicacionToDto($user);
-                $json = $jsonResponseConverter->toJson($usuarioDto, null);
-                $listJson[] = json_decode($json);
-            }
+//            foreach ($listPublicacion as $user) {
+//                $usuarioDto = $converters->publicacionToDto($user);
+//                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+//                $listJson[] = json_decode($json);
+//            }
 
-            return $this->json($listJson, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
+        return $this->json($listPublicacion, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
 //        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
@@ -218,7 +216,6 @@ class PublicacionController extends AbstractController
         }
     }
 
-
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
     #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Publicacion')]
@@ -230,7 +227,6 @@ class PublicacionController extends AbstractController
     public function delete(Request $request,PublicacionRepository $publicacionRepository,
                            Utilidades $utils,RespuestaRepository $respuestaRepository): JsonResponse
     {
-
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
         $id = $json['id'];
@@ -297,7 +293,6 @@ class PublicacionController extends AbstractController
             //obtenemos esta publicacion y le adjuntamos los tags
 
 
-
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
         }
         elseif($utils->comprobarPermisos($request, 1)) {
@@ -318,18 +313,21 @@ class PublicacionController extends AbstractController
                 $em->flush();
 
                 //creamos el tag
-                $tagsNuevo->setNombre($tags);
-                $tagsNuevo->setContador(1);
-                $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
+                //buscamos el tag si esta repe
+                $busquedatag = $tagsRepository->findOneBy(array("nombre"=>$tags));
+                if($busquedatag === null){
+                    $tagsNuevo->setNombre($tags);
+                    $tagsNuevo->setContador(1);
+                    $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
 
-                $em = $this->doctrine->getManager();
-                $em->persist($tagsNuevo);
-                $em->flush();
+                    $em = $this->doctrine->getManager();
+                    $em->persist($tagsNuevo);
+                    $em->flush();
+                }
 
                 //adjuntamos a la tabla intermedia
 
-
-                $publicacionTagsNuevo->setPublicacionId($publicacionRepository->findOneBy(array("usuario_id"=>$usuario)));
+                $publicacionTagsNuevo->setPublicacionId($publicacionNuevo);
                 $publicacionTagsNuevo->setTagsId($tagsRepository->findOneBy(array("nombre"=>$tags)));
                 $em = $this->doctrine->getManager();
                 $em->persist($publicacionTagsNuevo);

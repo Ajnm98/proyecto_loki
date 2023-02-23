@@ -28,13 +28,13 @@ class Tags
     #[ORM\OneToMany(mappedBy: 'tags_id', targetEntity: PublicacionTags::class)]
     private Collection $tags_id;
 
-//    /**
-//     * @return Collection
-//     */
-//    public function getTagsId(): Collection
-//    {
-//        return $this->tags_id;
-//    }
+    /**
+     * @return Collection
+     */
+    public function getTagsId(): Collection
+    {
+        return $this->tags_id;
+    }
 
     /**
      * @param Collection $tags_id
