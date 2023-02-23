@@ -328,7 +328,10 @@ class PublicacionController extends AbstractController
                     $em->persist($tagsNuevo);
                     $em->flush();
                 }else{
-
+                    $busquedatag->setContador($busquedatag->getContador()+1);
+                    $em = $this->doctrine->getManager();
+                    $em->persist($busquedatag);
+                    $em->flush();
                 }
 
                 //adjuntamos a la tabla intermedia
