@@ -10,12 +10,15 @@ use App\Dto\SumarRestarLikeDTO;
 
 use App\Entity\LikesUsuario;
 use App\Entity\Publicacion;
+use App\Entity\PublicacionTags;
+use App\Entity\Tags;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
 use App\Repository\LikesUsuarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
+use App\Repository\TagsRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\ArraySort;
 use App\Utils\JsonResponseConverter;
@@ -179,10 +182,10 @@ class PublicacionController extends AbstractController
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
-            if($idu!=$id){
-                return new JsonResponse("{ mensaje: No puedes ver las publicaciones de los amigos de otro usuario}", 400, [], true);
-            }
-            else{
+//            if($idu!=$id){
+//                return new JsonResponse("{ mensaje: No puedes ver las publicaciones de los amigos de otro usuario}", 400, [], true);
+//            }
+//            else{
                 $parametrosBusqueda = array(
                     'usuario_id' => $idu
                 );
@@ -207,8 +210,8 @@ class PublicacionController extends AbstractController
                     },
 
                 ]);
-            }
-    }
+//            }
+        }
         else{
             return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
         }
@@ -261,7 +264,8 @@ class PublicacionController extends AbstractController
 #[OA\Response(response: 300,description: "No se pudo crear correctamente")]
 #[OA\Response(response: 400,description: "No puedes crear publicaciones de otro usuario")]
     public function save(UsuarioRepository $usuarioRepository,Request $request,
-                         Utilidades $utils): JsonResponse
+                         Utilidades $utils,PublicacionRepository $publicacionRepository,
+                        TagsRepository $tagsRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -270,7 +274,10 @@ class PublicacionController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
         //CREAR NUEVO USUARIO A PARTIR DEL JSON
         $publicacionNuevo = new Publicacion();
+        $tagsNuevo = new Tags();
+        $publicacionTagsNuevo = new PublicacionTags();
         $usuarioid = $json['usuarioId'];
+        $tags = $json['tags'];
 
         if($utils->comprobarPermisos($request, 0)) {
             $usuario = $usuarioRepository->findOneBy(array("id" => $usuarioid));
@@ -285,6 +292,10 @@ class PublicacionController extends AbstractController
             $em = $this->doctrine->getManager();
             $em->persist($publicacionNuevo);
             $em->flush();
+
+            //obtenemos esta publicacion y le adjuntamos los tags
+
+
 
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
         }
@@ -305,9 +316,28 @@ class PublicacionController extends AbstractController
                 $em->persist($publicacionNuevo);
                 $em->flush();
 
+                //creamos el tag
+                $tagsNuevo->setNombre($tags);
+                $tagsNuevo->setContador(1);
+                $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
+
+                $em = $this->doctrine->getManager();
+                $em->persist($tagsNuevo);
+                $em->flush();
+
+                //adjuntamos a la tabla intermedia
+
+
+                $publicacionTagsNuevo->setPublicacionId($publicacionRepository->findOneBy(array("usuario_id"=>$usuario)));
+                $publicacionTagsNuevo->setTagsId($tagsRepository->findOneBy(array("nombre"=>$tags)));
+                $em = $this->doctrine->getManager();
+                $em->persist($publicacionTagsNuevo);
+                $em->flush();
+
+
                 return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
 //            }
-        }    else{
+            }else{
             return new JsonResponse("{ mensaje: No se pudo crear correctamente }", 300, [], true);
         }
 
@@ -378,6 +408,58 @@ class PublicacionController extends AbstractController
     {
         $apikey = $request->headers->get('apikey');
         $id = Token::getPayload($apikey)["user_id"];
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listPublicacion1 = $publicacionRepository->findBy($parametrosBusqueda);
+        if(!isEmpty($listPublicacion1)){
+            return new JsonResponse("No tienes Publicaciones",200,[],true);
+        }
+//        foreach($listPublicacion1 as $user){
+//            $usuarioDto = $converters->publicacionToDto($user);
+//            $json = $jsonResponseConverter->toJson($usuarioDto,null);
+//            $listJson[] = json_decode($json);
+//        }
+
+        return $this->json($listPublicacion1, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
+        ]);
+    }
+
+    #[Route('/api/publicacion/dislike', name: 'publicacionDislike', methods: ['POST'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:SumarRestarLikeDTO::class)))]
+    #[OA\Response(response: 200,description: "Like restado correctamente")]
+    public function restarLike(Request $request,PublicacionRepository $publicacionRepository): JsonResponse
+    {
+        $json  = json_decode($request->getContent(), true);
+
+        $id = $json['id'];
+
+        $parametrosBusqueda = array(
+            'id' => $id
+        );
+
+        $publicacion = $publicacionRepository->findOneBy($parametrosBusqueda);
+
+        $likesSumado = $publicacion->getLikes()-1 ;
+
+        $publicacionRepository->sumarLike($id, $likesSumado);
+
+        return new JsonResponse("{ mensaje: Like restado correctamente }", 200, [], true);
+    }
+
+    #[Route('/api/publicaciones/publicaciones-por-id',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
+    public function listarPublicacionesPorId(Request $request, PublicacionRepository $publicacionRepository,
+                                           DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    {
+        $id = $request->query->get("id");
+
         $parametrosBusqueda = array(
             'usuario_id' => $id
         );

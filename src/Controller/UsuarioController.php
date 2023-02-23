@@ -23,7 +23,6 @@ use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use ReallySimpleJWT\Token;
-use JMS\Serializer\Annotation\MaxDepth;
 use Nelmio\ApiDocBundle\Annotation\Model;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,17 +33,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use OpenApi\Attributes as OA;
 
-
-
 class UsuarioController extends AbstractController
 {
 
     private ManagerRegistry $doctrine;
-
     public function __construct(ManagerRegistry $managerRegistry)
     {
         $this-> doctrine = $managerRegistry;
     }
+
     #[Route('/api/usuario/list', name: 'usuarioListar', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
@@ -240,6 +237,27 @@ class UsuarioController extends AbstractController
 //                'message' => "No tiene permiso",
 //            ]);
 //        }
+
+    }
+
+    #[Route('/api/usuario/buscarid', name: 'appUsuarioBuscarid', methods: ['GET'])]
+    #[OA\Tag(name: 'Usuario')]
+    #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+
+    public function buscarPorId(UsuarioRepository $usuarioRepository,
+                                    Request $request): JsonResponse
+    {
+        $json = json_decode($request->getContent(), true);
+        $id = $request->query->get("id");
+
+
+        $usuario = $usuarioRepository->findOneBy(array("id"=>$id));
+
+        return $this->json($usuario, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+        ]);
 
     }
 

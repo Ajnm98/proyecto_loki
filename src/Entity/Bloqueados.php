@@ -6,6 +6,7 @@ use App\Repository\Bloqueados2Repository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BloqueadosRepository::class)]
+#[ORM\Table]
 class Bloqueados
 {
     #[ORM\Id]
