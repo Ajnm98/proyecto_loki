@@ -136,7 +136,7 @@ class Usuario
         return $this->fecha;
     }
 
-    public function setFecha(?DateTime $fecha): self
+    public function setFecha(?String $fecha): self
     {
         $this->fecha = $fecha;
 
