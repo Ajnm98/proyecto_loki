@@ -58,9 +58,7 @@ class PublicacionTags
         $this->publicacion_id = $publicacion_id;
     }
 
-    /**
-     * @return Tags|null
-     */
+
 
 
 
