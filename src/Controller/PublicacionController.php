@@ -7,7 +7,7 @@ use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
 use App\Dto\SumarRestarLikeDTO;
-
+use App\Entity\Likes;
 use App\Entity\LikesUsuario;
 use App\Entity\Publicacion;
 use App\Entity\PublicacionTags;
@@ -15,6 +15,7 @@ use App\Entity\Tags;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
 use App\Repository\ChatRepository;
+use App\Repository\LikesRepository;
 use App\Repository\LikesUsuarioRepository;
 use App\Repository\PublicacionRepository;
 use App\Repository\RespuestaRepository;
@@ -58,17 +59,15 @@ class PublicacionController extends AbstractController
 //        if($utils->comprobarPermisos($request, 0)) {
             $listPublicacion = $publicacionRepository->findAll();
 
-            foreach ($listPublicacion as $user) {
-                $usuarioDto = $converters->publicacionToDto($user);
-                $json = $jsonResponseConverter->toJson($usuarioDto, null);
-                $listJson[] = json_decode($json);
-            }
+//            foreach ($listPublicacion as $user) {
+//                $usuarioDto = $converters->publicacionToDto($user);
+//                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+//                $listJson[] = json_decode($json);
+//            }
 
-            return $this->json($listJson, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
+        return $this->json($listPublicacion, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
 //        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
     }
@@ -83,7 +82,6 @@ class PublicacionController extends AbstractController
     public function listarPublicacionUsuario(Request $request, PublicacionRepository $publicacionRepository, Utilidades $utils,
                                              DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-
         $id = $request->query->get("usuario_id");
         $apikey = $request->headers->get('apikey');
         $idu = Token::getPayload($apikey)["user_id"];
@@ -183,11 +181,8 @@ class PublicacionController extends AbstractController
             $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
             return $this->json($array2, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
-
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
         }
         elseif($utils->comprobarPermisos($request, 1)){
@@ -212,20 +207,16 @@ class PublicacionController extends AbstractController
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
-                return $this->json($array2, 200, [], [
-                    AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                    ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                        return $obj->getId();
-                    },
-
-                ]);
+            return $this->json($array2, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            ]);
 //            }
         }
         else{
             return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
         }
     }
-
 
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
     #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['DELETE'])]
@@ -238,7 +229,6 @@ class PublicacionController extends AbstractController
     public function delete(Request $request,PublicacionRepository $publicacionRepository,
                            Utilidades $utils,RespuestaRepository $respuestaRepository): JsonResponse
     {
-
         //Obtener Json del body
         $json  = json_decode($request->getContent(), true);
         $id = $json['id'];
@@ -306,7 +296,6 @@ class PublicacionController extends AbstractController
             //obtenemos esta publicacion y le adjuntamos los tags
 
 
-
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
         }
         elseif($utils->comprobarPermisos($request, 1)) {
@@ -328,19 +317,23 @@ class PublicacionController extends AbstractController
                 $em->flush();
 
                 //creamos el tag
-                $tagsNuevo->setNombre($tags);
-                $tagsNuevo->setContador(1);
-                $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
+                //buscamos el tag si esta repe
+                $busquedatag = $tagsRepository->findOneBy(array("nombre"=>$tags));
+                if($busquedatag === null){
+                    $tagsNuevo->setNombre($tags);
+                    $tagsNuevo->setContador(1);
+                    $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
 
+                    $em = $this->doctrine->getManager();
+                    $em->persist($tagsNuevo);
+                    $em->flush();
+                }else{
 
-                $em = $this->doctrine->getManager();
-                $em->persist($tagsNuevo);
-                $em->flush();
+                }
 
                 //adjuntamos a la tabla intermedia
 
-
-                $publicacionTagsNuevo->setPublicacionId($publicacionRepository->findOneBy(array("usuario_id"=>$usuario)));
+                $publicacionTagsNuevo->setPublicacionId($publicacionNuevo);
                 $publicacionTagsNuevo->setTagsId($tagsRepository->findOneBy(array("nombre"=>$tags)));
                 $em = $this->doctrine->getManager();
                 $em->persist($publicacionTagsNuevo);
@@ -436,9 +429,8 @@ class PublicacionController extends AbstractController
 //        }
 
         return $this->json($listPublicacion1, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-
         ]);
     }
 
