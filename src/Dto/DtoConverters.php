@@ -81,7 +81,6 @@ class DtoConverters
      if($respuesta->getFoto()!=null) {
          $respuestaDto->setFoto($respuesta->getFoto());
      }
-    $respuestaDto->setLikes($respuesta->getLikes());
       if($respuesta->getTag()!=null) {
           $respuestaDto->setTag($respuesta->getTag());
       }
