@@ -40,10 +40,8 @@ class Publicacion
     #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: LikesUsuario::class)]
     private Collection $publicacion_likeUsuario;
 
-
-//    #[ORM\Column(length: 255, nullable: true)]
-//    #[ORM\JoinColumn(name: 'tag',nullable: false)]
-//    private ?string $tag = null;
+    #[ORM\OneToMany(mappedBy: 'publicacion_id', targetEntity: PublicacionTags::class)]
+    private Collection $tags;
 
 
     public function __construct()
@@ -118,22 +116,6 @@ class Publicacion
         return $this;
     }
 
-
-
-
-
-//    public function getTag(): ?string
-//    {
-//        return $this->tag;
-//    }
-//
-//    public function setTag(?string $tag): self
-//    {
-//        $this->tag = $tag;
-//
-//        return $this;
-//    }
-
 /**
  * @return Collection<int, LikesUsuario>
  */
@@ -163,6 +145,22 @@ public function removePublicacionLikeUsuario(LikesUsuario $publicacionLikeUsuari
 
     return $this;
 }
+
+    /**
+     * @return Collection
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param Collection $tags
+     */
+    public function setTags(Collection $tags): void
+    {
+        $this->tags = $tags;
+    }
 
 
 }

@@ -429,9 +429,8 @@ class PublicacionController extends AbstractController
 //        }
 
         return $this->json($listPublicacion1, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-
         ]);
     }
 
