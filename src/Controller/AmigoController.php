@@ -108,12 +108,8 @@ class AmigoController extends AbstractController
         }
         elseif($utils->comprobarPermisos($request, 1)){
 
-            if($idu!=$id){
-                return new JsonResponse("{ mensaje: No puedes añadir amigos a otros usuario}", 400, [], true);
-            }
-            else {
                 $parametrosBusqueda = array(
-                    'id' => $id
+                    'id' => $idu
                 );
                 $usuario = $usuarioRepository->findOneBy($parametrosBusqueda);
                 $amigoid = $usuarioRepository->findOneBy(array("id" => $amigo));
@@ -128,8 +124,6 @@ class AmigoController extends AbstractController
 
                 return new JsonResponse("Amigo enlazado correctamente ", 200, [], true);
             }
-
-        }
         else{
             return new JsonResponse("{ mensaje: No se pudo añadir el amigo correctamente }", 300, [], true);
         }
@@ -231,18 +225,9 @@ class AmigoController extends AbstractController
         }
         elseif($utils->comprobarPermisos($request, 1)){
 
-            $amigoNuevo = new Amigos();
-
-            $id = Token::getPayload($apikey)["user_id"];;
-
-            if($id!=$idu){
-                return new JsonResponse("{ mensaje: No puedes borrar amigos de otro usuario}", 400, [], true);
-            }
-            else {
-
-                $amigosRepository->borrarAmigo($id, $amigo);
+                $amigosRepository->borrarAmigo($idu, $amigo);
                 return new JsonResponse("{ mensaje: Amigo borrado correctamente }", 200, [], true);
-            }
+
             }
         else{
             return new JsonResponse("{ mensaje: No se pudo borrar el amigo correctamente }", 300, [], true);
