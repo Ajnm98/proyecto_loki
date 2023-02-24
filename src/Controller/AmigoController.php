@@ -381,7 +381,8 @@ class AmigoController extends AbstractController
 
 
         return $this->json($listAmigos, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','usuarioBloqueaId',
+                'usuarioBloqueadoId','amigoId','apiKeys','usuarioLikesUsuario'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
 
