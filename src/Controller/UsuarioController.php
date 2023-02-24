@@ -227,7 +227,7 @@ class UsuarioController extends AbstractController
         $usuario = $usuarioRepository->findOneBy(array("id" => $id_usuario));
 
         return $this->json($usuario, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueaId', 'apiKeys', 'usuarioLikesUsuario', 'usuarioBloqueadoId'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                 return $obj->getId();
             },
@@ -243,7 +243,7 @@ class UsuarioController extends AbstractController
 
     #[Route('/api/usuario/buscarid', name: 'appUsuarioBuscarid', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
-    #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Parameter(name: "id", description: "Id usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
 
     public function buscarPorId(UsuarioRepository $usuarioRepository,
@@ -256,7 +256,7 @@ class UsuarioController extends AbstractController
         $usuario = $usuarioRepository->findOneBy(array("id"=>$id));
 
         return $this->json($usuario, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'usuarioBloqueaId', 'usuarioBloqueadoId', 'apiKeys', 'usuarioLikesUsuario', 'login'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
 

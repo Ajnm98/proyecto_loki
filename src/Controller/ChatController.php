@@ -224,7 +224,7 @@ class ChatController extends AbstractController
                     'id' => $idu
                 );
 
-                if ($chat->getUsuarioIdEmisor()->getId() != $parametrosBusqueda3) {
+                if ($chat->getUsuarioIdEmisor()->getId() != $idu) {
                     $chat1 = $chat->getUsuarioIdEmisor();
                     array_push($array, $chat1);
                 } else {
@@ -234,15 +234,17 @@ class ChatController extends AbstractController
 
             }
 
-            for ($i = 0; $i < count($array); ++$i) {
-                if ($id = $array[$i]->getId()) {
-                    unset($array[$i]);
-                }
-            }
+            $arr1 = array_unique($array,SORT_REGULAR);
 
+//            for ($i = 0; $i < count($array); ++$i) {
+//
+//                if ($id = $array[$i]->getId()) {
+//                    unset($array[$i]);
+//                }
+//            }
 
-            return $this->json($array, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            return $this->json($arr1, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueadoId','apiKeys', 'usuarioBloqueaId', 'usuarioLikesUsuario'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
                     return $obj->getId();
                 }

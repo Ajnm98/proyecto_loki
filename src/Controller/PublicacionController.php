@@ -66,7 +66,7 @@ class PublicacionController extends AbstractController
 //            }
 
         return $this->json($listPublicacion, 200, [], [
-            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId', 'usuarioLikesUsuario', 'publicacionLikeUsuario'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
 //        }else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
@@ -495,9 +495,5 @@ class PublicacionController extends AbstractController
 
         ]);
     }
-
-
-
-
 
 }

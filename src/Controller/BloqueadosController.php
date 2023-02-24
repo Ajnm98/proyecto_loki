@@ -256,7 +256,7 @@ class BloqueadosController extends AbstractController
     #[OA\Tag(name:'Bloqueados')]
     #[Security(name: "apikey")]
     #[OA\Parameter(name: "usuarioId", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
-    #[OA\Parameter(name: "usuarioBloqueado", description: "El nombre del usuario buscado bloqueado", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Parameter(name: "usuarioBloqueado", description: "El usuario buscado bloqueado", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: BloqueadosDTO::class))))]
     #[OA\Response(response: 100,description: "No existe usuario bloqueado")]
     #[OA\Response(response: 300,description: "No es posible buscar")]
@@ -279,7 +279,7 @@ class BloqueadosController extends AbstractController
 
             $bloqueado = $usuarioRepository->findOneBy($parametrosBusqueda, []);
 
-            if ($bloqueado != null) {
+            if ($bloqueado = null) {
                 $bloqueado_id = $bloqueado->getId();
             } else {
 
@@ -342,7 +342,7 @@ class BloqueadosController extends AbstractController
                 }
             ]);
         }
-        else{return new JsonResponse("{ mensaje: No se pudo desbloquear correctamente }", 300, [], true);}
+        else{return new JsonResponse("{ mensaje: No es posible buscar }", 300, [], true);}
         
     }
     
