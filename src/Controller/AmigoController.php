@@ -370,22 +370,17 @@ class AmigoController extends AbstractController
         $id = Token::getPayload($apikey)["user_id"];
 
         $parametrosBusqueda = array(
-            'usuario_id' => $id
+            'amigo_id' => $id
         );
 
         $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
         if(count($listAmigos)==0){
-            return new JsonResponse("Sin amigos",300,[],true);
+            return new JsonResponse("Sin Seguidores",300,[],true);
         }
 
-        foreach($listAmigos as $user){
-            $usarioDto = $converters-> amigosToDto($user);
-            $usuario2 = $usarioDto->getAmigoId();
-            $json = $jsonResponseConverter->toJson($usuario2,null);
-            $listJson[] = json_decode($json);
-        }
 
-        return $this->json($listJson, 200, [], [
+
+        return $this->json($listAmigos, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
         ]);
