@@ -288,12 +288,38 @@ class PublicacionController extends AbstractController
             $publicacionNuevo->setFoto($json['foto']);
             $publicacionNuevo->setLikes(0);
 
-            //GUARDAR
+            //GUARDAR la publicacion
             $em = $this->doctrine->getManager();
             $em->persist($publicacionNuevo);
             $em->flush();
 
-            //obtenemos esta publicacion y le adjuntamos los tags
+
+            //buscamos el tag si esta repe
+            $busquedatag = $tagsRepository->findOneBy(array("nombre"=>$tags));
+            //si no hay tag se crea uno nuevo
+            if($busquedatag === null){
+                $tagsNuevo->setNombre($tags);
+                $tagsNuevo->setContador(1);
+                $tagsNuevo->setFechaExpiracion(date("Y-m-d H:i:s", strtotime('+48 hours')));
+
+                $em = $this->doctrine->getManager();
+                $em->persist($tagsNuevo);
+                $em->flush();
+                //si hay tag se aumenta el contador
+            }else{
+                $busquedatag->setContador($busquedatag->getContador()+1);
+                $em = $this->doctrine->getManager();
+                $em->persist($busquedatag);
+                $em->flush();
+            }
+
+            //adjuntamos a la tabla intermedia
+
+            $publicacionTagsNuevo->setPublicacionId($publicacionNuevo);
+            $publicacionTagsNuevo->setTagsId($tagsRepository->findOneBy(array("nombre"=>$tags)));
+            $em = $this->doctrine->getManager();
+            $em->persist($publicacionTagsNuevo);
+            $em->flush();
 
 
             return new JsonResponse("{ mensaje: Publicacion creada correctamente }", 200, [], true);
@@ -311,14 +337,15 @@ class PublicacionController extends AbstractController
                 $publicacionNuevo->setFoto($json['foto']);
                 $publicacionNuevo->setLikes(0);
 
-                //GUARDAR
+                //GUARDAR la publicacion
                 $em = $this->doctrine->getManager();
                 $em->persist($publicacionNuevo);
                 $em->flush();
 
-                //creamos el tag
+
                 //buscamos el tag si esta repe
                 $busquedatag = $tagsRepository->findOneBy(array("nombre"=>$tags));
+                //si no hay tag se crea uno nuevo
                 if($busquedatag === null){
                     $tagsNuevo->setNombre($tags);
                     $tagsNuevo->setContador(1);
@@ -327,8 +354,12 @@ class PublicacionController extends AbstractController
                     $em = $this->doctrine->getManager();
                     $em->persist($tagsNuevo);
                     $em->flush();
+                    //si hay tag se aumenta el contador
                 }else{
-
+                    $busquedatag->setContador($busquedatag->getContador()+1);
+                    $em = $this->doctrine->getManager();
+                    $em->persist($busquedatag);
+                    $em->flush();
                 }
 
                 //adjuntamos a la tabla intermedia

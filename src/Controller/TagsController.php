@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Tags;
+use App\Repository\TagsRepository;
 use App\Utils\JsonResponseConverter;
 use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,8 +27,43 @@ class TagsController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
+    #[Route('/api/tags/10-mas-populares',  methods: ['GET'])]
+    #[OA\Tag(name: 'Tags')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: Tags::class))))]
+    public function listarTagsPopulares(Request $request,TagsRepository $tagsRepository, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    {
+        $listaTags = $tagsRepository->findAll();
 
+        return $this->json($listaTags, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','usuarioId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
 
+        ]);
+    }
+    #[Route('/api/tags/publicaciones-nombre-tag',  methods: ['GET'])]
+    #[OA\Tag(name: 'Tags')]
+    #[OA\Parameter(name: "nombre", description: "Nombre Tag", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: Tags::class))))]
+    public function listarPublicacionesPorTag(Request $request,TagsRepository $tagsRepository, JsonResponseConverter $jsonResponseConverter): JsonResponse
+    {
+
+        $id = $request->query->get("nombre");
+
+        $parametrosBusqueda = array(
+            'nombre' => $id
+        );
+        $listaTags = $tagsRepository->findBy($parametrosBusqueda);
+        if(count($listaTags)==0){
+
+            return new JsonResponse("No existe ese tag",200,[],true);
+        }
+        return $this->json($listaTags, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','usuarioId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+
+        ]);
+
+    }
 
 
 
