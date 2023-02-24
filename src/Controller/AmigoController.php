@@ -225,18 +225,9 @@ class AmigoController extends AbstractController
         }
         elseif($utils->comprobarPermisos($request, 1)){
 
-            $amigoNuevo = new Amigos();
-
-            $id = Token::getPayload($apikey)["user_id"];;
-
-            if($id!=$idu){
-                return new JsonResponse("{ mensaje: No puedes borrar amigos de otro usuario}", 400, [], true);
-            }
-            else {
-
-                $amigosRepository->borrarAmigo($id, $amigo);
+                $amigosRepository->borrarAmigo($idu, $amigo);
                 return new JsonResponse("{ mensaje: Amigo borrado correctamente }", 200, [], true);
-            }
+
             }
         else{
             return new JsonResponse("{ mensaje: No se pudo borrar el amigo correctamente }", 300, [], true);

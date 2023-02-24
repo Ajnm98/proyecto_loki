@@ -27,7 +27,7 @@ class TagsController extends AbstractController
     {
         $this-> doctrine = $managerRegistry;
     }
-    #[Route('/api/tags/10-mas-populares',  methods: ['GET'])]
+    #[Route('/api/tags/listar',  methods: ['GET'])]
     #[OA\Tag(name: 'Tags')]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: Tags::class))))]
     public function listarTagsPopulares(Request $request,TagsRepository $tagsRepository, JsonResponseConverter $jsonResponseConverter): JsonResponse
@@ -42,7 +42,7 @@ class TagsController extends AbstractController
     }
     #[Route('/api/tags/publicaciones-nombre-tag',  methods: ['GET'])]
     #[OA\Tag(name: 'Tags')]
-    #[OA\Parameter(name: "nombre", description: "Nombre Tag", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Parameter(name: "nombre", description: "Nombre del Tag", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: Tags::class))))]
     public function listarPublicacionesPorTag(Request $request,TagsRepository $tagsRepository, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
@@ -64,8 +64,5 @@ class TagsController extends AbstractController
         ]);
 
     }
-
-
-
 
 }
