@@ -368,6 +368,27 @@ class UsuarioController extends AbstractController
 
     }
 
+    #[Route('/api/usuario/buscar2', name: 'appUsuarioBuscarNombre2', methods: ['GET'])]
+    #[OA\Tag(name: 'Usuario')]
+    #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+    public function buscarPorNombre2(UsuarioRepository $usuarioRepository,
+                                     Request $request): JsonResponse
+    {
+        $listaUsuario = $usuarioRepository->findAll();
+        $listaFiltrada = array();
+        $id = $request->query->get("nombre");
 
+        foreach ($listaUsuario as $usuario){
+            if(preg_match("/".$id."/i",$usuario->getUsuario())){
+                array_push($listaFiltrada,$usuario);
+            }
+        }
+
+        return $this->json($listaFiltrada, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueaId', 'apiKeys', 'usuarioLikesUsuario', 'usuarioBloqueadoId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+        ]);
+    }
 
 }
