@@ -411,4 +411,37 @@ class AmigoController extends AbstractController
 
     }
 
+
+    #[Route('/api/amigos/amigos-id', name: 'amigosID', methods: ['GET'])]
+    #[OA\Tag(name: 'Amigos')]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+    #[OA\Response(response: 300,description: "Sin amigos")]
+    public function buscarAmigosID(AmigosRepository $amigosRepository, Request $request,  DtoConverters $converters,
+                                   JsonResponseConverter $jsonResponseConverter, Utilidades $utils): JsonResponse
+    {
+        $id = $request->query->get("usuario_id");
+
+        $parametrosBusqueda = array(
+            'usuario_id' => $id
+        );
+
+        $listAmigos = $amigosRepository->findBy($parametrosBusqueda);
+        if(count($listAmigos)==0){
+            return new JsonResponse("Sin amigos",300,[],true);
+        }
+
+        foreach($listAmigos as $user){
+            $usarioDto = $converters-> amigosToDto($user);
+            $usuario2 = $usarioDto->getAmigoId();
+            $json = $jsonResponseConverter->toJson($usuario2,null);
+            $listJson[] = json_decode($json);
+        }
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();}
+        ]);
+
+    }
+
 }
