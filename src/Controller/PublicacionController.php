@@ -496,4 +496,30 @@ class PublicacionController extends AbstractController
         ]);
     }
 
+    #[Route('/api/publicaciones/tieneLike',  methods: ['GET'])]
+    #[OA\Tag(name: 'Publicacion')]
+    #[Security(name: "apikey")]
+    #[OA\Parameter(name: "publicacion_id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response: 200,description: "No tiene like")]
+    #[OA\Response(response: 300,description: "Tiene like")]
+    public function listarLike(Request $request, LikesUsuarioRepository $likesUsuarioRepository): JsonResponse
+    {
+
+         $publicacion_id = $request->query->get("publicacion_id");
+         $apikey = $request->headers->get('apikey');
+         $id = Token::getPayload($apikey)["user_id"];
+
+        $parametrosBusqueda = array(
+            'publicacion_id' => $publicacion_id,
+            'usuario_id' => $id
+        );
+
+        if($likesUsuarioRepository->findOneBy($parametrosBusqueda)==null){
+            return new JsonResponse("{ mensaje: No tiene like }", 200, [], false);
+        }
+        else{
+            return new JsonResponse("{ mensaje: Tiene like}", 300, [], true);
+        }
+    }
+
 }
