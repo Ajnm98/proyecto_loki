@@ -515,10 +515,10 @@ class PublicacionController extends AbstractController
         );
 
         if($likesUsuarioRepository->findOneBy($parametrosBusqueda)==null){
-            return new JsonResponse("{ mensaje: No tiene like }", 200, [], false);
+            return new JsonResponse("{0}", 200, [], false);
         }
         else{
-            return new JsonResponse("{ mensaje: Tiene like}", 300, [], true);
+            return new JsonResponse("{1}", 300, [], true);
         }
     }
 
