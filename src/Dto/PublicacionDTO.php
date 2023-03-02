@@ -14,7 +14,7 @@ class PublicacionDTO
     private string $fecha;
     private string $foto;
     private int $likes;
-
+    private bool $tiene;
 
     public function __construct()
     {
@@ -115,6 +115,22 @@ class PublicacionDTO
     public function setLikes(int $likes): void
     {
         $this->likes = $likes;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTiene(): bool
+    {
+        return $this->tiene;
+    }
+
+    /**
+     * @param bool $tiene
+     */
+    public function setTiene(bool $tiene): void
+    {
+        $this->tiene = $tiene;
     }
 
 

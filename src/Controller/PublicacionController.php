@@ -28,6 +28,8 @@ use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Util;
+use phpDocumentor\Reflection\Types\Boolean;
+use phpDocumentor\Reflection\Types\Integer;
 use ReallySimpleJWT\Token;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -150,7 +152,7 @@ class PublicacionController extends AbstractController
     #[OA\Response(response: 400,description: "No puedes ver las publicaciones de los amigos de otro usuario")]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
     public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, Utilidades $utils,
-                                                   PublicacionRepository $publicacionRepository,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter)//: JsonResponse
+                                                   PublicacionRepository $publicacionRepository,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter, LikesUsuarioRepository $likesUsuarioRepository)//: JsonResponse
     {
 
 //        $json = json_decode($request->getContent(), true);
@@ -180,7 +182,20 @@ class PublicacionController extends AbstractController
 
             $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
-            return $this->json($array2, 200, [], [
+            foreach ($array2 as $user) {
+                if($this->listarLike2($user->getId(), $idu, $likesUsuarioRepository)!=1){
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(false);
+                }
+                else {
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(true);
+                }
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson[], 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
@@ -207,7 +222,20 @@ class PublicacionController extends AbstractController
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
 
-            return $this->json($array2, 200, [], [
+            foreach ($array2 as $user) {
+                if($this->listarLike2($user->getId(), $idu, $likesUsuarioRepository)!=1){
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(false);
+                }
+                else {
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(true);
+                }
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+
+            return $this->json($listJson, 200, [], [
                 AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId'],
                 ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
             ]);
@@ -217,6 +245,24 @@ class PublicacionController extends AbstractController
             return new JsonResponse("{ mensaje: No se puede ver las publicaciones }", 300, [], true);
         }
     }
+    public function listarLike2(int $publicacion_id, int $id, LikesUsuarioRepository $likesUsuarioRepository): int
+    {
+
+        $num = 0;
+        $parametrosBusqueda = array(
+            'publicacion_id' => $publicacion_id,
+            'usuario_id' => $id
+        );
+
+        if($likesUsuarioRepository->findOneBy($parametrosBusqueda)==null){
+            return $num ;
+        }
+        else{
+            $num=1;
+            return $num;
+        }
+    }
+
 
     //BORRA PUBLICACION CON LAS RESPUESTAS ASOCIADAS
     #[Route('/api/publicacion/delete', name: 'publicaciondelete', methods: ['DELETE'])]
@@ -502,7 +548,7 @@ class PublicacionController extends AbstractController
     #[OA\Parameter(name: "publicacion_id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
     #[OA\Response(response: 200,description: "No tiene like")]
     #[OA\Response(response: 300,description: "Tiene like")]
-    public function listarLike(Request $request, LikesUsuarioRepository $likesUsuarioRepository): JsonResponse
+    public function listarLike(Request $request, LikesUsuarioRepository $likesUsuarioRepository): Boolean
     {
 
          $publicacion_id = $request->query->get("publicacion_id");
@@ -515,10 +561,10 @@ class PublicacionController extends AbstractController
         );
 
         if($likesUsuarioRepository->findOneBy($parametrosBusqueda)==null){
-            return new JsonResponse("{0}", 200, [], false);
+            return false;
         }
         else{
-            return new JsonResponse("{1}", 300, [], true);
+            return true;
         }
     }
 
