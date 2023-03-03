@@ -64,6 +64,9 @@ class DtoConverters
         if($publicacion->getLikes()!=null) {
             $publicacionDto->setLikes($publicacion->getLikes());
         }
+        else{
+            $publicacionDto->setLikes(0);
+        }
 
 
         return $publicacionDto;
@@ -107,6 +110,13 @@ class DtoConverters
         if($usuario->getTelefono()!=null) {
             $usuarioDto->setTelefono($usuario->getTelefono());
         }
+        if($usuario->getFoto()!=null) {
+            $usuarioDto->setFoto($usuario->getFoto());
+        }
+        else{
+            $usuarioDto->setFoto('');
+        }
+
         return $usuarioDto;
 
     }
