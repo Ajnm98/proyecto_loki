@@ -43,6 +43,21 @@ class ApiKeyRepository extends ServiceEntityRepository
         }
     }
 
+    public function borrarApiKeyUsuario(int $usuarioId):array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM api_key
+            WHERE usuario_id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 //    /**
 //     * @return ApiKey[] Returns an array of ApiKey objects
 //     */
@@ -77,18 +92,4 @@ class ApiKeyRepository extends ServiceEntityRepository
         return $resultSet->fetchAllAssociative();
     }
 
-
-//    public function findApiKeyValida($id_usuario):string
-//    {
-//
-//        $rsm = new ResultSetMapping();
-//
-//        $query = $this->getEntityManager()->createNativeQuery('select token from api_key ak  where ak.id_usuario  = ? and ak.fecha_expiracion >= ? ', $rsm);
-//        $query->setParameter(1, $id_usuario);
-//        $query->setParameter(2, date("Y-m-d"));
-//        $token = $query->getResult();
-//
-//        return  $token;
-//
-//    }
 }

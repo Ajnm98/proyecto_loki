@@ -34,8 +34,6 @@ class Respuesta
 
     #[ORM\Column(length: 200,nullable: true)]
     private ?String $foto = null;
-    #[ORM\Column]
-    private ?int $likes = null;
 
     #[ORM\Column(length: 200,nullable: true)]
     private ?String $tag = null;
@@ -88,13 +86,7 @@ class Respuesta
         return $this->foto;
     }
 
-    /**
-     * @return int|null
-     */
-    public function getLikes(): ?int
-    {
-        return $this->likes;
-    }
+
 
     /**
      * @return String|null
@@ -144,13 +136,7 @@ class Respuesta
         $this->foto = $foto;
     }
 
-    /**
-     * @param int|null $likes
-     */
-    public function setLikes(?int $likes): void
-    {
-        $this->likes = $likes;
-    }
+
 
     /**
      * @param String|null $tag
