@@ -306,14 +306,11 @@ class ChatController extends AbstractController
             return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
         }
         elseif($utils->comprobarPermisos($request, 1)){
-            if($idu!=$id_emisor){
-                return new JsonResponse("{ mensaje: No puedes enviar mensaje de otro usuario}", 400, [], true);
-            }
-            else {
+
                 $chat = new Chat();
 
                 $parametrosBusqueda1 = array(
-                    'id' => $id_emisor
+                    'id' => $idu
                 );
 
                 $parametrosBusqueda2 = array(
@@ -336,7 +333,7 @@ class ChatController extends AbstractController
                 $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
                 return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
-            }
+
         }  else{
             return new JsonResponse("{ mensaje: No se pudo enviar el mensaje correctamente }", 300, [], true);
         }
