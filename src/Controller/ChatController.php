@@ -358,6 +358,33 @@ class ChatController extends AbstractController
             $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
             return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+        }elseif($id_emisor==0){
+            $chat = new Chat();
+
+            $parametrosBusqueda1 = array(
+                'id' => $id_emisor
+            );
+
+            $parametrosBusqueda2 = array(
+                'id' => $idu
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            $chat->setFoto($foto);
+
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
+
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+
         }
         elseif($utils->comprobarPermisos($request, 1)){
 
@@ -493,7 +520,5 @@ class ChatController extends AbstractController
         } else {
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
-
-
     }
 }
