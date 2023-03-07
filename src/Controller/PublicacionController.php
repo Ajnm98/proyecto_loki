@@ -151,6 +151,7 @@ class PublicacionController extends AbstractController
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     #[OA\Response(response: 400,description: "No puedes ver las publicaciones de los amigos de otro usuario")]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
+    #[OA\Response(response: 500,description: "Tienes que seguir a amigos")]
     public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, Utilidades $utils,
                                                    PublicacionRepository $publicacionRepository,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter, LikesUsuarioRepository $likesUsuarioRepository)//: JsonResponse
     {
@@ -222,7 +223,7 @@ class PublicacionController extends AbstractController
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
             if($array2==null){
-                return new JsonResponse("{ mensaje: No tienes amigos }", 500, [], true);
+                return new JsonResponse("{ mensaje: Tienes que seguir a amigos }", 500, [], true);
             }
 
             foreach ($array2 as $user) {
