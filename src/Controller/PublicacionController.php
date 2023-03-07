@@ -221,6 +221,9 @@ class PublicacionController extends AbstractController
                 );
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
+            if($array2==null){
+                return new JsonResponse("{ mensaje: No tienes amigos }", 500, [], true);
+            }
 
             foreach ($array2 as $user) {
                 if($this->listarLike2($user->getId(), $idu, $likesUsuarioRepository)!=1){
@@ -233,6 +236,7 @@ class PublicacionController extends AbstractController
                 }
                 $json = $jsonResponseConverter->toJson($usuarioDto, null);
                 $listJson[] = json_decode($json);
+
             }
 
             return $this->json($listJson, 200, [], [
