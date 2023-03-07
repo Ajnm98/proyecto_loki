@@ -52,13 +52,35 @@ class PublicacionController extends AbstractController
 
     #[Route('/api/publicacion/list', name: 'listar_publicacion', methods: ['GET'])]
     #[OA\Tag(name: 'Publicacion')]
-//    #[Security(name: "apikey")]
+   #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
 //    #[OA\Response(response: 401,description: "Unauthorized")]
     public function listarpublicacion(PublicacionRepository $publicacionRepository,Utilidades $utils, Request $request,
-                                      DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
+                                      DtoConverters $converters, JsonResponseConverter $jsonResponseConverter, LikesUsuarioRepository $likesUsuarioRepository): JsonResponse
     {
 //        if($utils->comprobarPermisos($request, 0)) {
+        if($utils->comprobarPermisos($request, 1)|| $utils->comprobarPermisos($request, 0)){
+            $apikey = $request->headers->get('apikey');
+            $idu = Token::getPayload($apikey)["user_id"];
+            $listPublicacion = $publicacionRepository->findAll();
+            foreach ($listPublicacion as $user) {
+                if($this->listarLike2($user->getId(), $idu, $likesUsuarioRepository)!=1){
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(false);
+                }
+                else {
+                    $usuarioDto = $converters->publicacionToDto($user);
+                    $usuarioDto->setTiene(true);
+                }
+                $json = $jsonResponseConverter->toJson($usuarioDto, null);
+                $listJson[] = json_decode($json);
+            }
+            return $this->json($listJson, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId', 'usuarioLikesUsuario', 'publicacionLikeUsuario'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+            ]);
+
+        }else {
             $listPublicacion = $publicacionRepository->findAll();
 
 //            foreach ($listPublicacion as $user) {
@@ -66,7 +88,7 @@ class PublicacionController extends AbstractController
 //                $json = $jsonResponseConverter->toJson($usuarioDto, null);
 //                $listJson[] = json_decode($json);
 //            }
-
+        }
         return $this->json($listPublicacion, 200, [], [
             AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__','login','apiKeys','usuarioBloqueaId','usuarioBloqueadoId', 'usuarioLikesUsuario', 'publicacionLikeUsuario'],
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
