@@ -647,7 +647,7 @@ class ChatController extends AbstractController
         }
 
     }
-    #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['POST'])]
+    #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['GET'])]
     #[OA\Tag(name:'Chat')]
 //    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
@@ -696,8 +696,9 @@ class ChatController extends AbstractController
 }'
             ]
         );
+        $contenido = $response->getContent(false);
 
-        return new JsonResponse($response->getContent(false),200,[],true);
+        return new JsonResponse($contenido,200,[],true);
     }
 
 }
