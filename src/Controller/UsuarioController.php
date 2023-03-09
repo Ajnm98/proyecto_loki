@@ -10,6 +10,7 @@ use App\Dto\EditarUsuarioDTO;
 use App\Dto\UsuarioDTO;
 use App\Entity\Amigos;
 use App\Entity\ApiKey;
+use App\Entity\Chat;
 use App\Entity\Login;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
@@ -140,6 +141,7 @@ class UsuarioController extends AbstractController
             $likesUsuarioRepository->borrarLikesUsuario($id);
 
 
+
             $publicacionRepository->borrarPublicacionPorUsuario($id);
             $apiKeyRepository->borrarApiKeyUsuario($id);
             $usuarioRepository->borrarUsuario($id);
@@ -189,7 +191,7 @@ class UsuarioController extends AbstractController
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:CrearUsuarioDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario creado correctamente")]
     public function save(LoginRepository $loginRepository,Utilidades $utilidades,
-                         UsuarioRepository $usuarioRepository,Request $request, AmigoController $amigoController): JsonResponse
+                         UsuarioRepository $usuarioRepository,Request $request, AmigoController $amigoController, ChatController $chatController): JsonResponse
     {
 
         //Obtener Json del body
@@ -244,8 +246,24 @@ class UsuarioController extends AbstractController
 
         $amigoController->save2($amigo1);
 
+        $chat = new Chat();
+        $chat->setUsuarioIdEmisor($amigo);
+        $chat->setUsuarioIdReceptor($user);
+        $chat->setTexto('Bienvenido a Tidal');
+        $fecha = date('d-m-Y H:i:s');
+        $chat->setFecha($fecha);
+
+        $chatController->enviarMensaje2($chat);
+
+
+
         return new JsonResponse("{ mensaje: usuario creado correctamente }", 200, [], true);
     }
+
+
+
+
+
     #[Route('/api/usuario/buscarNick', name: 'appUsuarioBuscarNick', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
     #[OA\Parameter(name: "nick", description: "Nick Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
