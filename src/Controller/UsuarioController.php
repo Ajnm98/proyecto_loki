@@ -16,9 +16,12 @@ use App\Repository\AmigosRepository;
 use App\Repository\ApiKeyRepository;
 use App\Repository\BloqueadosRepository;
 use App\Repository\ChatRepository;
+use App\Repository\LikesUsuarioRepository;
 use App\Repository\LoginRepository;
 use App\Repository\PublicacionRepository;
+use App\Repository\PublicacionTagsRepository;
 use App\Repository\RespuestaRepository;
+use App\Repository\TagsRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\JsonResponseConverter;
 use App\Utils\Utilidades;
@@ -105,7 +108,8 @@ class UsuarioController extends AbstractController
                            PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
                            LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
                             AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository,
-                            ApiKeyRepository $apiKeyRepository): JsonResponse
+                            ApiKeyRepository $apiKeyRepository, LikesUsuarioRepository $likesUsuarioRepository,
+                           PublicacionTagsRepository $publicacionTagsRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -115,14 +119,32 @@ class UsuarioController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
 
         if ($utils->comprobarPermisos($request, 0)) {
+
+
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
             $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
             $amigosRepository->borrarAmigosPorUsuario($id);
             $chatRepository->borrarChatPorUsuario($id);
             $respuestaRepository->borrarRespuestaPorUsuario($id);
+            $likesUsuarioRepository->borrarLikesUsuario($id);
+
+
             $publicacionRepository->borrarPublicacionPorUsuario($id);
             $apiKeyRepository->borrarApiKeyUsuario($id);
             $usuarioRepository->borrarUsuario($id);
             $loginRepository->borrarLogin($id);
+
 
 
             return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
@@ -132,7 +154,20 @@ class UsuarioController extends AbstractController
 //            if ($id != $idu) {
 //                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
 //            } else {
-                $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
+
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
+            $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
                 $amigosRepository->borrarAmigosPorUsuario($idu);
                 $chatRepository->borrarChatPorUsuario($idu);
                 $respuestaRepository->borrarRespuestaPorUsuario($idu);
