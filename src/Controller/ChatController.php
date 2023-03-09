@@ -421,6 +421,13 @@ class ChatController extends AbstractController
 
     }
 
+    public function enviarMensaje2(Chat $chat){
+        $em = $this->doctrine->getManager();
+        $em->persist($chat);
+        $em->flush();
+    }
+
+
     #[Route('/api/chat/borrarChat', name: 'borrarChat_usuario',  methods: ['DELETE'])]
     #[OA\Tag(name:'Chat')]
     #[Security(name: "apikey")]
