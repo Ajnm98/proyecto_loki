@@ -358,7 +358,7 @@ class ChatController extends AbstractController
             $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
             return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
-        }elseif($id_emisor==0){
+        }elseif($id_emisor==10){
             $chat = new Chat();
 
             $parametrosBusqueda1 = array(
@@ -520,5 +520,160 @@ class ChatController extends AbstractController
         } else {
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
+
+
     }
+
+    #[Route('/api/chat/enviarMensajeChatGPT', name: 'chat_usuarioGPT',  methods: ['POST'])]
+    #[OA\Tag(name:'Chat')]
+    #[Security(name: "apikey")]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
+    #[OA\Response(response: 200,description: "Mensaje enviado correctamente")]
+    #[OA\Response(response: 300,description: "No se pudo enviar el mensaje correctamente")]
+    #[OA\Response(response: 400,description: "No puedes enviar mensaje de otro usuario")]
+    public function enviarMensajeChatGPT(Request $request, ChatRepository $chatRepository,Utilidades $utils,
+                                         UsuarioRepository $usuarioRepository): JsonResponse
+    {
+
+        $json  = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];;
+        $id_emisor = $json['usuarioIdEmisor'];
+        $id_receptor = $json['usuarioIdReceptor'];
+        $texto = $json['texto'];
+        $fecha = date('d-m-Y H:i:s');
+        $foto = $json['foto'];
+
+        if($utils->comprobarPermisos($request, 0)) {
+            $chat = new Chat();
+
+            $parametrosBusqueda1 = array(
+                'id' => $id_emisor
+            );
+
+            $parametrosBusqueda2 = array(
+                'id' => $id_receptor
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            //setFechaNacimiento((date_create_from_format('Y/d/m H:i:s',$json['fecha_nacimiento'])));
+            $chat->setFoto($foto);
+
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
+//        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+        }elseif($id_emisor==10){
+            $chat = new Chat();
+
+            $parametrosBusqueda1 = array(
+                'id' => $id_emisor
+            );
+
+            $parametrosBusqueda2 = array(
+                'id' => $idu
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            $chat->setFoto($foto);
+
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
+
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+
+        }
+        elseif($utils->comprobarPermisos($request, 1)){
+
+            $chat = new Chat();
+
+            $parametrosBusqueda1 = array(
+                'id' => $idu
+            );
+
+            $parametrosBusqueda2 = array(
+                'id' => $id_receptor
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            //setFechaNacimiento((date_create_from_format('Y/d/m H:i:s',$json['fecha_nacimiento'])));
+            $chat->setFoto($foto);
+
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
+//        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+
+        }  else{
+            return new JsonResponse("{ mensaje: No se pudo enviar el mensaje correctamente }", 300, [], true);
+        }
+
+    }
+    #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['POST'])]
+    #[OA\Tag(name:'Chat')]
+    #[Security(name: "apikey")]
+    #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
+    #[OA\Response(response: 200,description: "Mensaje enviado correctamente")]
+    #[OA\Response(response: 300,description: "No se pudo enviar el mensaje correctamente")]
+    #[OA\Response(response: 400,description: "No puedes enviar mensaje de otro usuario")]
+    public function enviarpostopenai(Request $request, ChatRepository $chatRepository,Utilidades $utils,
+                                     UsuarioRepository $usuarioRepository): JsonResponse
+    {
+
+        $json  = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];;
+        $id_emisor = $json['usuarioIdEmisor'];
+        $id_receptor = $json['usuarioIdReceptor'];
+        $texto = $json['texto'];
+        $fecha = date('d-m-Y H:i:s');
+        $foto = $json['foto'];
+
+
+        $response = $this->client->request(
+            'POST',
+            'https://api.openai.com/v1/chat/completions',
+            ['headers'=>[
+                'Content-Type'=>'application/json',
+            ],
+
+                'body'=>'{
+    "model": "gpt-3.5-turbo",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Cuentame un chiste"
+          }
+        ]
+}']
+        );
+
+
+        return new JsonResponse();
+    }
+
 }
