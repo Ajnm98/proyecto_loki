@@ -647,7 +647,7 @@ class ChatController extends AbstractController
         }
 
     }
-    #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['GET'])]
+    #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['POST'])]
     #[OA\Tag(name:'Chat')]
 //    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
