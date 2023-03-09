@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\BorrarPublicacionDTO;
+use App\Dto\CrearAmigoDTO;
 use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
@@ -181,7 +182,7 @@ class PublicacionController extends AbstractController
 //        $json = json_decode($request->getContent(), true);
 
         $apikey = $request->headers->get('apikey');
-        $idu = Token::getPayload($apikey)["user_id"];;
+        $idu = Token::getPayload($apikey)["user_id"];
         $id = $request->query->get("usuario_id");
         $array = array();
 
@@ -451,6 +452,9 @@ class PublicacionController extends AbstractController
         }
 
     }
+
+
+
     #[Route('/api/publicacion/likeodislike', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
     #[Security(name: "apikey")]

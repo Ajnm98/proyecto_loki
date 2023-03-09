@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Dto\BorrarUsuarioDTO;
+use App\Dto\CrearAmigoDTO;
 use App\Dto\CrearUsuarioDTO;
 use App\Dto\DtoConverters;
 use App\Dto\EditarUsuarioDTO;
 use App\Dto\UsuarioDTO;
+use App\Entity\Amigos;
 use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
@@ -32,6 +34,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use OpenApi\Attributes as OA;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 
 class UsuarioController extends AbstractController
 {
@@ -151,7 +154,7 @@ class UsuarioController extends AbstractController
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:CrearUsuarioDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario creado correctamente")]
     public function save(LoginRepository $loginRepository,Utilidades $utilidades,
-                         UsuarioRepository $usuarioRepository,Request $request): JsonResponse
+                         UsuarioRepository $usuarioRepository,Request $request, AmigoController $amigoController): JsonResponse
     {
 
         //Obtener Json del body
@@ -188,6 +191,23 @@ class UsuarioController extends AbstractController
         $em = $this-> doctrine->getManager();
         $em->persist($usuarioNuevo);
         $em-> flush();
+
+        $parametrosBusqueda = array(
+            'usuario' => $usuario
+        );
+        $parametrosBusqueda2 = array(
+            'id' => 6
+        );
+
+
+        $user = $usuarioRepository->findOneBy($parametrosBusqueda);
+        $amigo=$usuarioRepository->findOneBy($parametrosBusqueda2);
+
+       $amigo1 = new Amigos();
+       $amigo1->setUsuario_Id($user);
+       $amigo1->setAmigo_Id($amigo);
+
+        $amigoController->save2($amigo1);
 
         return new JsonResponse("{ mensaje: usuario creado correctamente }", 200, [], true);
     }
