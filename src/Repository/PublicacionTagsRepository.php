@@ -20,4 +20,19 @@ class PublicacionTagsRepository extends ServiceEntityRepository
         parent::__construct($registry, PublicacionTags::class);
     }
 
+    public function borrarPublicacionTags(int $id): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM publicaciontags
+            WHERE publicacion_id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $id]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 }

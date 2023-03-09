@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Dto\BorrarUsuarioDTO;
+use App\Dto\CrearAmigoDTO;
 use App\Dto\CrearUsuarioDTO;
 use App\Dto\DtoConverters;
 use App\Dto\EditarUsuarioDTO;
 use App\Dto\UsuarioDTO;
+use App\Entity\Amigos;
 use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
@@ -14,9 +16,12 @@ use App\Repository\AmigosRepository;
 use App\Repository\ApiKeyRepository;
 use App\Repository\BloqueadosRepository;
 use App\Repository\ChatRepository;
+use App\Repository\LikesUsuarioRepository;
 use App\Repository\LoginRepository;
 use App\Repository\PublicacionRepository;
+use App\Repository\PublicacionTagsRepository;
 use App\Repository\RespuestaRepository;
+use App\Repository\TagsRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\JsonResponseConverter;
 use App\Utils\Utilidades;
@@ -32,6 +37,7 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use OpenApi\Attributes as OA;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 
 class UsuarioController extends AbstractController
 {
@@ -102,7 +108,8 @@ class UsuarioController extends AbstractController
                            PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
                            LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
                             AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository,
-                            ApiKeyRepository $apiKeyRepository): JsonResponse
+                            ApiKeyRepository $apiKeyRepository, LikesUsuarioRepository $likesUsuarioRepository,
+                           PublicacionTagsRepository $publicacionTagsRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -112,14 +119,32 @@ class UsuarioController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
 
         if ($utils->comprobarPermisos($request, 0)) {
+
+
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
             $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
             $amigosRepository->borrarAmigosPorUsuario($id);
             $chatRepository->borrarChatPorUsuario($id);
             $respuestaRepository->borrarRespuestaPorUsuario($id);
+            $likesUsuarioRepository->borrarLikesUsuario($id);
+
+
             $publicacionRepository->borrarPublicacionPorUsuario($id);
             $apiKeyRepository->borrarApiKeyUsuario($id);
             $usuarioRepository->borrarUsuario($id);
             $loginRepository->borrarLogin($id);
+
 
 
             return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
@@ -129,7 +154,20 @@ class UsuarioController extends AbstractController
 //            if ($id != $idu) {
 //                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
 //            } else {
-                $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
+
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
+            $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
                 $amigosRepository->borrarAmigosPorUsuario($idu);
                 $chatRepository->borrarChatPorUsuario($idu);
                 $respuestaRepository->borrarRespuestaPorUsuario($idu);
@@ -151,7 +189,7 @@ class UsuarioController extends AbstractController
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:CrearUsuarioDTO::class)))]
     #[OA\Response(response: 200,description: "Usuario creado correctamente")]
     public function save(LoginRepository $loginRepository,Utilidades $utilidades,
-                         UsuarioRepository $usuarioRepository,Request $request): JsonResponse
+                         UsuarioRepository $usuarioRepository,Request $request, AmigoController $amigoController): JsonResponse
     {
 
         //Obtener Json del body
@@ -188,6 +226,23 @@ class UsuarioController extends AbstractController
         $em = $this-> doctrine->getManager();
         $em->persist($usuarioNuevo);
         $em-> flush();
+
+        $parametrosBusqueda = array(
+            'usuario' => $usuario
+        );
+        $parametrosBusqueda2 = array(
+            'id' => 6
+        );
+
+
+        $user = $usuarioRepository->findOneBy($parametrosBusqueda);
+        $amigo=$usuarioRepository->findOneBy($parametrosBusqueda2);
+
+       $amigo1 = new Amigos();
+       $amigo1->setUsuario_Id($user);
+       $amigo1->setAmigo_Id($amigo);
+
+        $amigoController->save2($amigo1);
 
         return new JsonResponse("{ mensaje: usuario creado correctamente }", 200, [], true);
     }

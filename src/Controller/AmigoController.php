@@ -128,8 +128,18 @@ class AmigoController extends AbstractController
             return new JsonResponse("{ mensaje: No se pudo añadir el amigo correctamente }", 300, [], true);
         }
 
+    }
+
+    public function save2(Amigos $amigo){
+
+        $em = $this->doctrine->getManager();
+        $em->persist($amigo);
+        $em->flush();
 
     }
+
+
+
 // BUSCA POR ID DE LA RELACION EN LA BBDD, CAMBIAR A BUSCAR POR NOMBRE
     #[Route('/api/amigos/buscar', name: 'amigos_buscar', methods: ['GET'])]
     #[OA\Tag(name: 'Amigos')]

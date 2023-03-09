@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\BorrarPublicacionDTO;
+use App\Dto\CrearAmigoDTO;
 use App\Dto\CrearPublicacionDTO;
 use App\Dto\DtoConverters;
 use App\Dto\PublicacionDTO;
@@ -173,6 +174,7 @@ class PublicacionController extends AbstractController
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: PublicacionDTO::class))))]
     #[OA\Response(response: 400,description: "No puedes ver las publicaciones de los amigos de otro usuario")]
     #[OA\Response(response: 300,description: "No se puede ver las publicaciones")]
+    #[OA\Response(response: 500,description: "Tienes que seguir a amigos")]
     public function listarPublicacionUsuarioAmigos(Request $request,AmigosRepository $amigosRepository, Utilidades $utils,
                                                    PublicacionRepository $publicacionRepository,DtoConverters $converters, JsonResponseConverter $jsonResponseConverter, LikesUsuarioRepository $likesUsuarioRepository)//: JsonResponse
     {
@@ -180,7 +182,7 @@ class PublicacionController extends AbstractController
 //        $json = json_decode($request->getContent(), true);
 
         $apikey = $request->headers->get('apikey');
-        $idu = Token::getPayload($apikey)["user_id"];;
+        $idu = Token::getPayload($apikey)["user_id"];
         $id = $request->query->get("usuario_id");
         $array = array();
 
@@ -243,6 +245,9 @@ class PublicacionController extends AbstractController
                 );
 
                 $array2 =$publicacionRepository->findBy($parametrosBusqueda2, []);
+            if($array2==null){
+                return new JsonResponse("{ mensaje: Tienes que seguir a amigos }", 500, [], true);
+            }
 
             foreach ($array2 as $user) {
                 if($this->listarLike2($user->getId(), $idu, $likesUsuarioRepository)!=1){
@@ -255,6 +260,7 @@ class PublicacionController extends AbstractController
                 }
                 $json = $jsonResponseConverter->toJson($usuarioDto, null);
                 $listJson[] = json_decode($json);
+
             }
 
             return $this->json($listJson, 200, [], [
@@ -446,6 +452,9 @@ class PublicacionController extends AbstractController
         }
 
     }
+
+
+
     #[Route('/api/publicacion/likeodislike', name: 'publicacionlike', methods: ['POST'])]
     #[OA\Tag(name: 'Publicacion')]
     #[Security(name: "apikey")]

@@ -39,6 +39,21 @@ class LikesUsuarioRepository extends ServiceEntityRepository
         }
     }
 
+    public function borrarLikesUsuario(int $usuarioId): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            DELETE FROM likesusuario
+            WHERE usuario_id = :id 
+            ';
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['id' => $usuarioId]);
+
+        // returns an array of arrays (i.e. a raw data set)
+        return $resultSet->fetchAllAssociative();
+    }
+
 //    /**
 //     * @return LikesUsuario[] Returns an array of LikesUsuario objects
 //     */

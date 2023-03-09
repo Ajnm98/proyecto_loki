@@ -256,6 +256,60 @@ class ChatController extends AbstractController
         }
     }
 
+    #[Route('/api/chat/chatUsuarioUsuario', name: 'chats_usuario_usuario',  methods: ['GET'])]
+    #[OA\Tag(name:'Chat')]
+    #[Security(name: "apikey")]
+    #[OA\Parameter(name: "usuario_id", description: "Tu id de usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+    #[OA\Response(response: 400,description: "No se pudo listar")]
+    public function chatUsuarioUsuario(Request $request, ChatRepository $chatRepository, Utilidades $utils): JsonResponse
+    {
+
+        $id = $request->query->get("usuario_id");
+        $apikey = $request->headers->get('apikey');
+        $idu = Token::getPayload($apikey)["user_id"];
+        $array = array();
+
+        if($utils->comprobarPermisos($request, 1)){
+            $parametrosBusqueda = array(
+                'usuario_id_emisor' => $idu,
+                'usuario_id_receptor'=>$id
+            );
+
+            $parametrosBusqueda2 = array(
+                'usuario_id_receptor' => $idu,
+                'usuario_id_emisor' => $id
+            );
+
+            $listChats1 = $chatRepository->findBy($parametrosBusqueda, []);
+            $listChats2 = $chatRepository->findBy($parametrosBusqueda2, []);
+
+            $listChats = array_merge($listChats1, $listChats2);
+
+
+
+            $arr1 = array_unique($listChats,SORT_REGULAR);
+
+//            for ($i = 0; $i < count($array); ++$i) {
+//
+//                if ($id = $array[$i]->getId()) {
+//                    unset($array[$i]);
+//                }
+//            }
+
+            return $this->json($arr1, 200, [], [
+                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueadoId','apiKeys', 'usuarioBloqueaId', 'usuarioLikesUsuario'],
+                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                    return $obj->getId();
+                }
+
+            ]);
+        }
+        else{
+            return new JsonResponse("{ message: No se pudo listar}", 400,[],false);
+        }
+    }
+
 
     #[Route('/api/chat/enviarMensaje', name: 'chat_usuario',  methods: ['POST'])]
     #[OA\Tag(name:'Chat')]
@@ -304,39 +358,63 @@ class ChatController extends AbstractController
             $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
             return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+        }elseif($id_emisor==0){
+            $chat = new Chat();
+
+            $parametrosBusqueda1 = array(
+                'id' => $id_emisor
+            );
+
+            $parametrosBusqueda2 = array(
+                'id' => $idu
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            $chat->setFoto($foto);
+
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
+
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+
         }
         elseif($utils->comprobarPermisos($request, 1)){
-            if($idu!=$id_emisor){
-                return new JsonResponse("{ mensaje: No puedes enviar mensaje de otro usuario}", 400, [], true);
-            }
-            else {
-                $chat = new Chat();
 
-                $parametrosBusqueda1 = array(
-                    'id' => $id_emisor
-                );
+            $chat = new Chat();
 
-                $parametrosBusqueda2 = array(
-                    'id' => $id_receptor
-                );
+            $parametrosBusqueda1 = array(
+                'id' => $idu
+            );
 
-                $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
-                $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
+            $parametrosBusqueda2 = array(
+                'id' => $id_receptor
+            );
+
+            $usuarioemisor = $usuarioRepository->findOneBy($parametrosBusqueda1);
+            $usuarioreceptor = $usuarioRepository->findOneBy($parametrosBusqueda2);
 
 
-                $chat->setUsuarioIdEmisor($usuarioemisor);
-                $chat->setUsuarioIdReceptor($usuarioreceptor);
-                $chat->setTexto($texto);
-                $chat->setFecha($fecha);
-                //setFechaNacimiento((date_create_from_format('Y/d/m H:i:s',$json['fecha_nacimiento'])));
-                $chat->setFoto($foto);
+            $chat->setUsuarioIdEmisor($usuarioemisor);
+            $chat->setUsuarioIdReceptor($usuarioreceptor);
+            $chat->setTexto($texto);
+            $chat->setFecha($fecha);
+            //setFechaNacimiento((date_create_from_format('Y/d/m H:i:s',$json['fecha_nacimiento'])));
+            $chat->setFoto($foto);
 
-                $em = $this->doctrine->getManager();
-                $em->persist($chat);
-                $em->flush();
+            $em = $this->doctrine->getManager();
+            $em->persist($chat);
+            $em->flush();
 //        $chatRepository->enviarMensaje($id_emisor, $id_receptor, $texto, $fecha, $foto);
-                return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
-            }
+            return new JsonResponse(" Mensaje enviado correctamente ", 200, []);
+
         }  else{
             return new JsonResponse("{ mensaje: No se pudo enviar el mensaje correctamente }", 300, [], true);
         }
@@ -442,7 +520,5 @@ class ChatController extends AbstractController
         } else {
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
-
-
     }
 }
