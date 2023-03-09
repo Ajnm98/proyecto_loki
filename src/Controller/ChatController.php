@@ -667,6 +667,10 @@ class ChatController extends AbstractController
 //        $fecha = date('d-m-Y H:i:s');
 //        $foto = $json['foto'];
 
+        $parametrosBusqueda = array(
+            'id' => 10
+        );
+
 
         $headers = [
             'Content-Type'=>'application/json',
@@ -678,7 +682,7 @@ class ChatController extends AbstractController
             'https://api.openai.com/v1/chat/completions',
             ['headers'=> [
                 'Content-Type'=>'application/json',
-                'Authorization'=>'Bearer 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',
+                'Authorization'=>'Bearer '.$usuarioRepository->findOneBy($parametrosBusqueda)->getFoto(),
             ],
 
                 'body'=>'{
@@ -692,7 +696,6 @@ class ChatController extends AbstractController
 }'
             ]
         );
-
 
         return new JsonResponse($response->getContent(false),200,[],true);
     }
