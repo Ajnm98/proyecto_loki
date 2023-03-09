@@ -27,6 +27,9 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
+use function MongoDB\BSON\toJSON;
 
 
 class ChatController extends AbstractController
@@ -648,22 +651,27 @@ class ChatController extends AbstractController
                                      UsuarioRepository $usuarioRepository): JsonResponse
     {
 
-//        $json  = json_decode($request->getContent(), true);
+        $json  = json_decode($request->getContent(), true);
 //        $apikey = $request->headers->get('apikey');
 //        $idu = Token::getPayload($apikey)["user_id"];;
 //        $id_emisor = $json['usuarioIdEmisor'];
 //        $id_receptor = $json['usuarioIdReceptor'];
-//        $texto = $json['texto'];
+        $texto = $json['texto'];
 //        $fecha = date('d-m-Y H:i:s');
 //        $foto = $json['foto'];
 
 
+        $headers = [
+            'Content-Type'=>'application/json',
+            'Authorization'=>'Bearer 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',
+        ];
+        $formData = new FormDataPart($headers);
         $response = $this->client->request(
             'POST',
             'https://api.openai.com/v1/chat/completions',
-            ['headers'=>[
+            ['headers'=> [
                 'Content-Type'=>'application/json',
-                'Authorization'=>'Bearer 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'
+                'Authorization'=>'Bearer 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',
             ],
 
                 'body'=>'{
@@ -671,14 +679,35 @@ class ChatController extends AbstractController
         "messages": [
           {
             "role": "user",
-            "content": "Cuentame un chiste"
+            "content": "'.$texto.'"
           }
         ]
-}']
+}'
+            ]
         );
 
 
-        return new JsonResponse($response->toArray(),200,true);
+        return new JsonResponse($response->getContent(false),200,[],true);
     }
 
 }
+
+
+//'{
+//    "model": "gpt-3.5-turbo",
+//        "messages": [
+//          {
+//            "role": "user",
+//            "content": "Cuentame un chiste"
+//          }
+//        ]
+//}'
+
+//[
+//'model'=>'gpt-3.5-turbo',
+//                    'messages'=>[
+//    'role'=>'user',
+//    'content'=>'hola'
+//]
+//                    ]
+//            ]
