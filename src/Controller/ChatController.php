@@ -26,11 +26,15 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 
 class ChatController extends AbstractController
 {
 
-    public function __construct(private ManagerRegistry $doctrine) {}
+    public function __construct(private ManagerRegistry $doctrine,HttpClientInterface $client) {
+        $this->client = $client;
+    }
     #[Route('/api/chat', name: 'chat',methods: ['GET'])]
     #[OA\Tag(name:'Chat')]
     #[Security(name: "apikey")]
@@ -635,7 +639,7 @@ class ChatController extends AbstractController
     }
     #[Route('/api/chat/postGPT', name: 'chat_usuarioGPT',  methods: ['POST'])]
     #[OA\Tag(name:'Chat')]
-    #[Security(name: "apikey")]
+//    #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto del usuario", required: true, content: new OA\JsonContent(ref: new Model(type:CrearChatDTO::class)))]
     #[OA\Response(response: 200,description: "Mensaje enviado correctamente")]
     #[OA\Response(response: 300,description: "No se pudo enviar el mensaje correctamente")]
@@ -644,14 +648,14 @@ class ChatController extends AbstractController
                                      UsuarioRepository $usuarioRepository): JsonResponse
     {
 
-        $json  = json_decode($request->getContent(), true);
-        $apikey = $request->headers->get('apikey');
-        $idu = Token::getPayload($apikey)["user_id"];;
-        $id_emisor = $json['usuarioIdEmisor'];
-        $id_receptor = $json['usuarioIdReceptor'];
-        $texto = $json['texto'];
-        $fecha = date('d-m-Y H:i:s');
-        $foto = $json['foto'];
+//        $json  = json_decode($request->getContent(), true);
+//        $apikey = $request->headers->get('apikey');
+//        $idu = Token::getPayload($apikey)["user_id"];;
+//        $id_emisor = $json['usuarioIdEmisor'];
+//        $id_receptor = $json['usuarioIdReceptor'];
+//        $texto = $json['texto'];
+//        $fecha = date('d-m-Y H:i:s');
+//        $foto = $json['foto'];
 
 
         $response = $this->client->request(
@@ -659,6 +663,7 @@ class ChatController extends AbstractController
             'https://api.openai.com/v1/chat/completions',
             ['headers'=>[
                 'Content-Type'=>'application/json',
+                'Authorization'=>'Bearer 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'
             ],
 
                 'body'=>'{
@@ -673,7 +678,7 @@ class ChatController extends AbstractController
         );
 
 
-        return new JsonResponse();
+        return new JsonResponse($response->toArray(),200,true);
     }
 
 }
