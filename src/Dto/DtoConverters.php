@@ -64,9 +64,10 @@ class DtoConverters
         if($publicacion->getLikes()!=null) {
             $publicacionDto->setLikes($publicacion->getLikes());
         }
-        if($publicacion->getTag()!=null) {
-            $publicacionDto->setTag($publicacion->getTag());
+        else{
+            $publicacionDto->setLikes(0);
         }
+
 
         return $publicacionDto;
     }
@@ -83,7 +84,6 @@ class DtoConverters
      if($respuesta->getFoto()!=null) {
          $respuestaDto->setFoto($respuesta->getFoto());
      }
-    $respuestaDto->setLikes($respuesta->getLikes());
       if($respuesta->getTag()!=null) {
           $respuestaDto->setTag($respuesta->getTag());
       }
@@ -110,6 +110,13 @@ class DtoConverters
         if($usuario->getTelefono()!=null) {
             $usuarioDto->setTelefono($usuario->getTelefono());
         }
+        if($usuario->getFoto()!=null) {
+            $usuarioDto->setFoto($usuario->getFoto());
+        }
+        else{
+            $usuarioDto->setFoto('');
+        }
+
         return $usuarioDto;
 
     }

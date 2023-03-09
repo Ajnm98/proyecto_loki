@@ -3,6 +3,8 @@
 namespace App\Dto;
 
 use Symfony\Component\Validator\Constraints\Date;
+use Doctrine\Common\Collections\Collection;
+
 
 class PublicacionDTO
 {
@@ -12,7 +14,7 @@ class PublicacionDTO
     private string $fecha;
     private string $foto;
     private int $likes;
-    private string $tag;
+    private bool $tiene;
 
     public function __construct()
     {
@@ -116,20 +118,23 @@ class PublicacionDTO
     }
 
     /**
-     * @return string
+     * @return bool
      */
-    public function getTag(): string
+    public function isTiene(): bool
     {
-        return $this->tag;
+        return $this->tiene;
     }
 
     /**
-     * @param string $tag
+     * @param bool $tiene
      */
-    public function setTag(string $tag): void
+    public function setTiene(bool $tiene): void
     {
-        $this->tag = $tag;
+        $this->tiene = $tiene;
     }
+
+
+
 
 
 }

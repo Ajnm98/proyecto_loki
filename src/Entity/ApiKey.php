@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ApiKeyRepository::class)]
+#[ORM\Table]
 class ApiKey
 {
     #[ORM\Id]

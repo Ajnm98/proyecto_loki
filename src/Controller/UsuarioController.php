@@ -5,23 +5,27 @@ namespace App\Controller;
 use App\Dto\BorrarUsuarioDTO;
 use App\Dto\CrearUsuarioDTO;
 use App\Dto\DtoConverters;
+use App\Dto\EditarUsuarioDTO;
 use App\Dto\UsuarioDTO;
 use App\Entity\ApiKey;
 use App\Entity\Login;
 use App\Entity\Usuario;
 use App\Repository\AmigosRepository;
+use App\Repository\ApiKeyRepository;
 use App\Repository\BloqueadosRepository;
 use App\Repository\ChatRepository;
+use App\Repository\LikesUsuarioRepository;
 use App\Repository\LoginRepository;
 use App\Repository\PublicacionRepository;
+use App\Repository\PublicacionTagsRepository;
 use App\Repository\RespuestaRepository;
+use App\Repository\TagsRepository;
 use App\Repository\UsuarioRepository;
 use App\Utils\JsonResponseConverter;
 use App\Utils\Utilidades;
 use Doctrine\Persistence\ManagerRegistry;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use ReallySimpleJWT\Token;
-use JMS\Serializer\Annotation\MaxDepth;
 use Nelmio\ApiDocBundle\Annotation\Model;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,17 +36,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use OpenApi\Attributes as OA;
 
-
-
 class UsuarioController extends AbstractController
 {
 
     private ManagerRegistry $doctrine;
-
     public function __construct(ManagerRegistry $managerRegistry)
     {
         $this-> doctrine = $managerRegistry;
     }
+
     #[Route('/api/usuario/list', name: 'usuarioListar', methods: ['GET'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
@@ -74,14 +76,14 @@ class UsuarioController extends AbstractController
     #[OA\Tag(name: 'Usuario')]
     #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
-
     public function buscarPorNombre(UsuarioRepository $usuarioRepository,
                                     Request $request): JsonResponse
     {
         $json = json_decode($request->getContent(), true);
         $nick = $request->query->get("nombre");
+        $nick2 = ucfirst(strtolower($nick));
         $a = "%";
-        $final= $a.$nick.$a;
+        $final= $a.$nick2.$a;
 
         $usuario = $usuarioRepository->buscarNombre($final);
 
@@ -92,7 +94,7 @@ class UsuarioController extends AbstractController
 
     }
 
-    #[Route('/api/usuario/delete', name: 'respuesta_delete', methods: ['DELETE'])]
+    #[Route('/api/usuario/delete', name: 'respuestaDelete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Usuario')]
     #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarUsuarioDTO::class)))]
@@ -102,7 +104,9 @@ class UsuarioController extends AbstractController
     public function delete(Request $request,ChatRepository $chatRepository,Utilidades $utils,
                            PublicacionRepository $publicacionRepository,RespuestaRepository $respuestaRepository,
                            LoginRepository $loginRepository,UsuarioRepository $usuarioRepository,
-                            AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository): JsonResponse
+                            AmigosRepository $amigosRepository,BloqueadosRepository $bloqueadosRepository,
+                            ApiKeyRepository $apiKeyRepository, LikesUsuarioRepository $likesUsuarioRepository,
+                           PublicacionTagsRepository $publicacionTagsRepository): JsonResponse
     {
 
         //Obtener Json del body
@@ -112,41 +116,70 @@ class UsuarioController extends AbstractController
         $idu = Token::getPayload($apikey)["user_id"];
 
         if ($utils->comprobarPermisos($request, 0)) {
+
+
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
             $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
             $amigosRepository->borrarAmigosPorUsuario($id);
             $chatRepository->borrarChatPorUsuario($id);
             $respuestaRepository->borrarRespuestaPorUsuario($id);
+            $likesUsuarioRepository->borrarLikesUsuario($id);
+
+
             $publicacionRepository->borrarPublicacionPorUsuario($id);
+            $apiKeyRepository->borrarApiKeyUsuario($id);
             $usuarioRepository->borrarUsuario($id);
             $loginRepository->borrarLogin($id);
+
 
 
             return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
         }
         elseif($utils->comprobarPermisos($request, 1)) {
 
-            if ($id != $idu) {
-                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
-            } else {
-                $bloqueadosRepository->borrarBloqueadosPorUsuario($id);
-                $amigosRepository->borrarAmigosPorUsuario($id);
-                $chatRepository->borrarChatPorUsuario($id);
-                $respuestaRepository->borrarRespuestaPorUsuario($id);
-                $publicacionRepository->borrarPublicacionPorUsuario($id);
-                $usuarioRepository->borrarUsuario($id);
-                $loginRepository->borrarLogin($id);
+//            if ($id != $idu) {
+//                return new JsonResponse("{ mensaje: No puedes borrar a otro usuario}", 400, [], true);
+//            } else {
 
+            $parametrosBusqueda = array(
+                'usuario_id' => $id
+            );
+
+
+            $listPublicacion = $publicacionRepository->findBy($parametrosBusqueda);
+
+            foreach($listPublicacion as $user) {
+                $publicacionTagsRepository->borrarPublicacionTags($user->getId());
+            }
+
+
+            $bloqueadosRepository->borrarBloqueadosPorUsuario($idu);
+                $amigosRepository->borrarAmigosPorUsuario($idu);
+                $chatRepository->borrarChatPorUsuario($idu);
+                $respuestaRepository->borrarRespuestaPorUsuario($idu);
+                $publicacionRepository->borrarPublicacionPorUsuario($idu);
+                $apiKeyRepository->borrarApiKeyUsuario($idu);
+                $usuarioRepository->borrarUsuario($idu);
+                $loginRepository->borrarLogin($idu);
 
                 return new JsonResponse("{ mensaje: Usuario borrado correctamente }", 200, [], true);
             }
-        }
+//        }
         else{
             return new JsonResponse("{ mensaje: No se pudo borrar correctamente }", 300, [], true);
         }
     }
-
-
-
 
     #[Route('/api/usuario/registrar', name: 'usuarioSaveCorto', methods: ['POST'])]
     #[OA\Tag(name: 'Usuario')]
@@ -202,8 +235,9 @@ class UsuarioController extends AbstractController
     {
         $json = json_decode($request->getContent(), true);
         $nick = $request->query->get("nick");
+        $nick2 = ucfirst(strtolower($nick));
         $a = "%";
-        $final= $a.$nick.$a;
+        $final= $a.$nick2.$a;
 
         $usuario = $usuarioRepository->buscarNick($final);
 
@@ -222,23 +256,174 @@ class UsuarioController extends AbstractController
                                   Request $request,Utilidades $utils): JsonResponse
     {
 
-        if ($utils->comprobarPermisos($request,1)) {
-            $apikey = $request->headers->get("apikey");
-            $id_usuario = Token::getPayload($apikey)["user_id"];
-            $usuario = $usuarioRepository->findOneBy(array("id"=>$id_usuario));
+//        if ($utils->comprobarPermisos($request,1)) {
+        $apikey = $request->headers->get("apikey");
+        $id_usuario = Token::getPayload($apikey)["user_id"];
+        $usuario = $usuarioRepository->findOneBy(array("id" => $id_usuario));
 
-            return $this->json($usuario, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
-            ]);
+        return $this->json($usuario, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueaId', 'apiKeys', 'usuarioLikesUsuario', 'usuarioBloqueadoId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                return $obj->getId();
+            },
+        ]);
 
-        } else {
-            return $this->json([
-                'message' => "No tiene permiso",
-            ]);
-        }
+//        } else {
+//            return $this->json([
+//                'message' => "No tiene permiso",
+//            ]);
+//        }
 
     }
 
+    #[Route('/api/usuario/buscarid', name: 'appUsuarioBuscarid', methods: ['GET'])]
+    #[OA\Tag(name: 'Usuario')]
+    #[OA\Parameter(name: "id", description: "Id usuario", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+
+    public function buscarPorId(UsuarioRepository $usuarioRepository,
+                                    Request $request): JsonResponse
+    {
+        $json = json_decode($request->getContent(), true);
+        $id = $request->query->get("id");
+
+
+        $usuario = $usuarioRepository->findOneBy(array("id"=>$id));
+
+        return $this->json($usuario, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'usuarioBloqueaId', 'usuarioBloqueadoId', 'apiKeys', 'usuarioLikesUsuario', 'login'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+        ]);
+
+    }
+
+        #[Route('/api/usuario/editar', name: 'editar_usuario', methods: ['POST'])]
+        #[OA\Tag(name: 'Usuario')]
+        #[Security(name: "apikey")]
+        #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:EditarUsuarioDTO::class)))]
+        #[OA\Response(response: 200,description: "Usuario editado correctamente")]
+        #[OA\Response(response: 300,description: "No se pudo editar correctamente")]
+        public function editarPerfil(UsuarioRepository $usuarioRepository,
+                                     Request $request,Utilidades $utils): JsonResponse
+    {
+
+        $json = json_decode($request->getContent(), true);
+        $apikey = $request->headers->get("apikey");
+        $id_usuario = Token::getPayload($apikey)["user_id"];
+        $id = $json['id'];
+
+        if($utils->comprobarPermisos($request, 0)) {
+
+            $parametrosBusqueda = array(
+                'id' => $id
+            );
+
+            $usuario = $usuarioRepository->findOneBy($parametrosBusqueda);
+
+            if($json['usuario']!=null){
+                $usuario->setUsuario($json['usuario']);
+            }
+
+            if($json['nombre']!=null){
+                $usuario->setNombre($json['nombre']);
+            }
+
+            if($json['nick']!=null){
+                $usuario->setNick($json['nick']);
+            }
+
+            if($json['fecha']!=null){
+                $usuario->setFecha($json['fecha']);
+            }
+
+            if($json['telefono']!=null){
+                $usuario->setTelefono($json['telefono']);
+            }
+
+            if($json['foto']!=null){
+                $usuario->setFoto($json['foto']);
+            }
+
+            if($json['encabezado']!=null){
+                $usuario->setEncabezado($json['encabezado']);
+            }
+
+            $usuarioRepository->editarUsuario($usuario);
+
+            return new JsonResponse("{ mensaje: Usuario editado correctamente }", 200, [], true);
+
+        }
+        elseif ($utils->comprobarPermisos($request, 1)) {
+
+                $parametrosBusqueda2 = array(
+                    'id' => $id_usuario
+                );
+
+
+                $usuario2 = $usuarioRepository->findOneBy($parametrosBusqueda2);
+
+
+                if ($json['usuario'] != null) {
+                    $usuario2->setUsuario($json['usuario']);
+                }
+
+                if ($json['nombre'] != null) {
+                    $usuario2->setNombre($json['nombre']);
+                }
+
+                if ($json['nick'] != null) {
+                    $usuario2->setNick($json['nick']);
+                }
+
+                if ($json['fecha'] != null) {
+                    $usuario2->setFecha($json['fecha']);
+                }
+
+                if ($json['telefono'] != null) {
+                    $usuario2->setTelefono($json['telefono']);
+                }
+
+                if ($json['foto'] != null) {
+                    $usuario2->setFoto($json['foto']);
+                }
+
+                if ($json['encabezado'] != null) {
+                    $usuario2->setEncabezado($json['encabezado']);
+                }
+
+                 $usuarioRepository->editarUsuario($usuario2);
+
+                return new JsonResponse("{ mensaje: Usuario editado correctamente }", 200, [], true);
+
+            }
+        else {
+            return new JsonResponse("{ mensaje: No se pudo editar correctamente }", 300, [], true);
+        }
+
+
+    }
+
+    #[Route('/api/usuario/buscar2', name: 'appUsuarioBuscarNombre2', methods: ['GET'])]
+    #[OA\Tag(name: 'Usuario')]
+    #[OA\Parameter(name: "nombre", description: "Nombre Usuario", in: "query", required: true, schema: new OA\Schema(type: "string") )]
+    #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: UsuarioDTO::class))))]
+    public function buscarPorNombre2(UsuarioRepository $usuarioRepository,
+                                     Request $request): JsonResponse
+    {
+        $listaUsuario = $usuarioRepository->findAll();
+        $listaFiltrada = array();
+        $id = $request->query->get("nombre");
+
+        foreach ($listaUsuario as $usuario){
+            if(preg_match("/".$id."/i",$usuario->getUsuario())){
+                array_push($listaFiltrada,$usuario);
+            }
+        }
+
+        return $this->json($listaFiltrada, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__', 'login', 'usuarioBloqueaId', 'apiKeys', 'usuarioLikesUsuario', 'usuarioBloqueadoId'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
+        ]);
+    }
 
 }

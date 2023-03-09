@@ -33,40 +33,40 @@ class RespuestaController extends AbstractController
     }
     #[Route('/api/respuesta/list', name: 'respuesta_listar', methods: ['GET'])]
     #[OA\Tag(name: 'Respuesta')]
-    #[Security(name: "apikey")]
+//    #[Security(name: "apikey")]
     #[OA\Response(response:200,description:"successful operation" ,content: new OA\JsonContent(type: "array", items: new OA\Items(ref:new Model(type: RespuestaDTO::class))))]
-    #[OA\Response(response: 401,description: "Unauthorized")]
+//    #[OA\Response(response: 401,description: "Unauthorized")]
     public function listar(RespuestaRepository $respuestaRepository,Utilidades $utils, Request $request,
                            DtoConverters $converters, JsonResponseConverter $jsonResponseConverter): JsonResponse
     {
-        if($utils->comprobarPermisos($request, 0)) {
-            $listRespuesta = $respuestaRepository->findAll();
+//        if($utils->comprobarPermisos($request, 0)) {
+        $listRespuesta = $respuestaRepository->findAll();
 
-            foreach ($listRespuesta as $user) {
-                $usuarioDto = $converters->respuestaToDto($user);
-                $json = $jsonResponseConverter->toJson($usuarioDto, null);
-                $listJson[] = json_decode($json);
-            }
-
-            return $this->json($listJson, 200, [], [
-                AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
-                ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
-                    return $obj->getId();
-                },
-            ]);
+        foreach ($listRespuesta as $user) {
+            $usuarioDto = $converters->respuestaToDto($user);
+            $json = $jsonResponseConverter->toJson($usuarioDto, null);
+            $listJson[] = json_decode($json);
         }
-        else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
+
+        return $this->json($listJson, 200, [], [
+            AbstractNormalizer::IGNORED_ATTRIBUTES => ['__initializer__', '__cloner__', '__isInitialized__'],
+            ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($obj) {
+                return $obj->getId();
+            },
+        ]);
+//    }
+//        else{return new JsonResponse("{ message: Unauthorized}", 401,[],false);}
 
     }
 
-    #[Route('/api/respuesta/delete', name: 'respuestaDelete', methods: ['DELETE'])]
+    #[Route('/api/respuesta/delete', name: 'respuesta_delete', methods: ['DELETE'])]
     #[OA\Tag(name: 'Respuesta')]
     #[Security(name: "apikey")]
     #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
     #[OA\Response(response: 200,description: "Respuesta borrada correctamente")]
     #[OA\Response(response: 300,description: "No se pudo borrar correctamente")]
     #[OA\Response(response: 400,description: "No puedes borrar respuestas de otro usuario")]
-    public function delete(Request $request,RespuestaRepository $respuestaRepository,Utilidades $utils): JsonResponse
+    public function deleterespuesta(Request $request,RespuestaRepository $respuestaRepository,Utilidades $utils): JsonResponse
     {
 
         //Obtener Json del body
@@ -160,31 +160,7 @@ class RespuestaController extends AbstractController
     }
 
 
-    #[Route('/api/respuesta/like', name: 'publicacionLike', methods: ['POST'])]
-    #[OA\Tag(name: 'Respuesta')]
-    #[OA\RequestBody(description: "Dto de la respuesta", required: true, content: new OA\JsonContent(ref: new Model(type:BorrarRespuestaDTO::class)))]
-    #[OA\Response(response: 200,description: "Like sumado correctamente")]
-    public function sumarLikeRespuesta(Request $request,RespuestaRepository $respuestaRepository): JsonResponse
-    {
-        $json  = json_decode($request->getContent(), true);
 
-        $id = $json['id'];
-
-        $parametrosBusqueda = array(
-            'id' => $id
-        );
-
-        $publicacion = $respuestaRepository->findOneBy($parametrosBusqueda);
-
-
-        $likesSumado = $publicacion->getLikes()+1 ;
-
-        $respuestaRepository->sumarLikeRespuesta($id, $likesSumado);
-
-        return new JsonResponse("{ mensaje: Like sumado correctamente }", 200, [], true);
-
-
-    }
     #[Route('/api/respuesta/buscar-por-publicacion', name: 'respuestaBuscarPorPublicacion', methods: ['GET'])]
     #[OA\Tag(name: 'Respuesta')]
     #[OA\Parameter(name: "publicacion_id", description: "Id de la publicacion", in: "query", required: true, schema: new OA\Schema(type: "integer") )]
@@ -211,6 +187,5 @@ class RespuestaController extends AbstractController
             ObjectNormalizer::CIRCULAR_REFERENCE_HANDLER=>function ($obj){return $obj->getId();},
         ]);
     }
-
 
 }
